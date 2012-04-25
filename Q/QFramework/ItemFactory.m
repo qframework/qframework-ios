@@ -25,6 +25,7 @@
 #import "LayoutItem.h"
 #import "GameonApp.h"
 #import "ServerkoParse.h"
+#import "GMath.h"
 
 @implementation ItemFactory
 
@@ -36,6 +37,16 @@
         mApp = app;
 		mWorld = app.world;
 		mModels = [[NSMutableDictionary alloc] init];
+        memset(mDefaultTransf, 0, 9 * sizeof(float) );
+        mDefaultTransf[3] = 1.0f;
+        mDefaultTransf[4] = 1.0f;        
+        mDefaultTransf[5] = 1.0f;
+        
+        mDefaultUV[0] = 0.0f;
+        mDefaultUV[1] = 0.0f;
+        mDefaultUV[2] = 1.0f;
+        mDefaultUV[3] = 1.0f;
+        mDefaultColors[0] = 0xFFFFFFFF;        
 	}
     return self;
 }
@@ -106,6 +117,10 @@
 
 -(GameonModel*)getFromTemplate:(NSString*)strType data:(NSString*)strData
 {
+    if ( [mModels objectForKey:strData] != nil)
+    {
+        return [mModels objectForKey:strData];
+    }
 	if ([strData isEqualToString:@"sphere"])
 		{
 			GameonModel* model = [self createFromType:GMODEL_SPHERE color:mApp.colors.white texture:mApp.textures.mTextureDefault];
@@ -236,8 +251,13 @@
 {
 
     GameonModel* model = [[GameonModel alloc] initWithName:@"item" app:mApp];
+    [self addModelFromType:model template:template color:color texture:texid];
+    return model;
+}
 
-
+-(GameonModel*) addModelFromType:(GameonModel*)model template:(int)template color:(GLColor*)color texture:(int)texid
+{
+    
 	
     if (template == GMODEL_SPHERE)
     {
@@ -324,7 +344,137 @@
 	
 }
 
+-(void)newEmpty:(NSString*) name
+{
+    GameonModel* model = [[GameonModel alloc] initWithName:name app:mApp];
+    model.mIsModel = true;
+    if (model != nil)
+    {
+        [mModels setObject:model forKey:name];
+    }
+}
 
+-(void)addShape:(NSString*)name type:(NSString*)type transform:(NSString*)transform colors:(NSString*)colors uvbounds:(NSString*)uvbounds
+{
+    GameonModel* model = [mModels objectForKey:name];
+    if (model == nil) 
+    {
+        return;
+    }
+    
+    float transf[9];
+    float uvb[6];
+    int* cols;
+    
+    if (transform != nil)
+    {
+        for (int a=0; a< 9; a++)
+        {
+            transf[a] = mDefaultTransf[a];
+        }
+        [ServerkoParse parseFloatArray:transf max:9  forData:transform];
+    }
+    else
+    {
+        memcpy(transf,mDefaultTransf, sizeof(float)*9);
+    }
+    
+    
+    float mat[16];
+    matrixIdentity(mat);
+    matrixTranslate(mat, transf[0],transf[1],transf[2]);
+    matrixRotate(mat,transf[6], 1, 0, 0);
+    matrixRotate(mat,transf[7], 0, 1, 0);
+    matrixRotate(mat,transf[8], 0, 0, 1);
+    matrixScale(mat, transf[3],transf[4],transf[5]);		
+    
+    
+    if (uvbounds != nil)
+    {
+        [ServerkoParse parseFloatArray:uvb max:6  forData:uvbounds];        
+    }
+    else
+    {
+        memcpy(uvb ,mDefaultUV, sizeof(float)*4);
+    }
+    
+    int clen = 1;
+    if (colors != nil)
+    {
+        cols = [ServerkoParse parseColorVector:colors datalen:&clen];
+    }else
+    {
+        cols = malloc(sizeof(int));
+        cols[0]  = mDefaultColors[0];
+    }
+    
+    
+    if ([type isEqualToString:@"plane"])
+    {
+        [model addPlane:mat colors:cols colorlen:clen uvbounds:uvb];
+    }
+    free(cols);
+    /*
+     else if (type.equals("cube"))
+     {
+     model.addCube(bounds, cols, uvb);
+     }else if (type.equals("cylinder"))
+     {
+     model.addCyl(bounds, cols, uvb);
+     }else if (type.equals("sphere"))
+     {
+     model.addSphere(bounds, cols, uvb);
+     }else if (type.equals("pyramid"))
+     {
+     model.addPyramid(bounds, cols, uvb);
+     }*/
+    
+}
+
+-(void)addShapeFromData:(NSString*)name data:(NSString*)data transform:(NSString*)transform uvbounds:(NSString*) uvbounds
+{
+    GameonModel* model = [mModels objectForKey:name];
+    if (model == nil) 
+    {
+        return;
+    }
+    
+    float transf[9];
+    float uvb[6];
+
+    for (int a=0; a< 9; a++)
+    {
+        transf[a] = mDefaultTransf[a];
+    }    
+    if (transform != nil)
+    {
+
+        [ServerkoParse parseFloatArray:transf max:9  forData:transform];
+    }
+    
+    if (uvbounds != nil)
+    {
+        [ServerkoParse parseFloatArray:uvb max:6  forData:uvbounds];        
+    }
+    else
+    {
+        memcpy(uvb ,mDefaultUV, sizeof(float)*4);
+    }
+    
+    
+    float mat[16];
+    matrixIdentity(mat);
+    matrixTranslate(mat, transf[0],transf[1],transf[2]);
+    matrixRotate(mat,transf[6], 1, 0, 0);
+    matrixRotate(mat,transf[7], 0, 1, 0);
+    matrixRotate(mat,transf[8], 0, 0, 1);
+    matrixScale(mat, transf[3],transf[4],transf[5]);		
+    
+    int datalen = 0;
+    float* inputdata = [ServerkoParse parseFloatVector:data datalen:&datalen];
+    [model createModelFromData:inputdata length:datalen transform:mat uvbounds:uvb];
+    free(inputdata);
+}
 
 @end
 

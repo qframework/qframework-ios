@@ -43,9 +43,7 @@
     int                 mTextureH;
     
     int                 mTextureID;
-    
-    bool                mTransform;
-    
+        
     float               mBBoxMin[3];
     float               mBBoxMax[3];
     
@@ -61,6 +59,13 @@
 @property (nonatomic, assign) bool                mForceHalfTexturing;
 @property (nonatomic, assign) int                 mForcedOwner;
 @property (nonatomic, assign) bool                mEnabled;
+
+@property (nonatomic, assign) NSMutableArray*     mShapeList;	
+@property (nonatomic, assign) NSMutableArray*     mVertexList;
+@property (nonatomic, assign) int                 mTextureW;
+@property (nonatomic, assign) int                 mTextureH;
+@property (nonatomic, assign) int                 mIndexCount;
+@property (nonatomic, assign) int                 mVertexOffset;
 
 - (id) initWithApp:(GameonApp*)app;
 -(GLVertex*) addVertex:(float)ax y:(float)ay z:(float)az tu:(float)atu tv:(float)atv ;

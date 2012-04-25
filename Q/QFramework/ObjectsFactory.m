@@ -27,6 +27,11 @@
 #import "GameonModelRef.h"
 #import "ItemFactory.h"
 
+@implementation ObjectsFactoryRefId
+@synthesize name;
+@synthesize refid;
+@end
+
 @implementation ObjectsFactory
 
 
@@ -97,14 +102,16 @@
 	GameonModel* model = [mApp.items getFromTemplate:name data:data];
 	if (model != nil)
 	{
+        GameonModel* modelnew = [model copyOfModel];
 		LayoutItem* item = [[LayoutItem alloc]init];
-		item.mModel = model;
+		item.mModel = modelnew;
 		[self addModel:name item:item];
 	}
 }	
 -(void)place:(NSString*)name data:(NSString*)data 
 {
-	LayoutItem* item = [mItems objectForKey:name];
+    ObjectsFactoryRefId* refid = [self refId:name];    
+	LayoutItem* item = [mItems objectForKey:refid.name];
 	if (item == nil)
 	{
 		return;
@@ -112,28 +119,31 @@
 	GameonModel* model = item.mModel;
 
 	// TODO submodels
+    /*
 	if ([model ref:0] == nil)
 	{
 		GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:model];
 		[model addref:ref];
 		item.mModelRef = ref;
-	}
-	float loc[5] = {0,0,0,0,0};
-	[ServerkoParse parseFloatArray:loc max:5 forData:data]; 
-	[item setPosition2:loc[0] y:loc[1] z:loc[2]];
+	}*/
+	float coords[5] = {0,0,0,0,0};
+	[ServerkoParse parseFloatArray:coords max:5 forData:data]; 
+    GameonModelRef* ref = [model getRef:refid.refid];
+    [ref setPosition:coords];
+    [ref set];
 	
 
 }
 
 -(void)scale:(NSString*)name data:(NSString*)data 
 {
-	LayoutItem* item = [mItems objectForKey:name];
+    ObjectsFactoryRefId* refid = [self refId:name];
+	LayoutItem* item = [mItems objectForKey:refid.name];
 	if (item == nil)
 	{
 		return;
 	}
 	GameonModel* model = item.mModel;
-
 	
 	// TODO submodels
 	if ([model ref:0] == nil)
@@ -144,20 +154,20 @@
 	float scale[5] = {0,0,0,0,0};
 	[ServerkoParse parseFloatArray:scale max:5 forData:data]; 
 	
-	GameonModelRef* r = [model ref:0];
-	[r setScale:scale];
-	[r set];
+    GameonModelRef* ref = [model getRef:refid.refid];
+    [ref setScale:scale];
+    [ref set];
 }
 
 -(void)rotate:(NSString*)name data:(NSString*)data 
 {
-	LayoutItem* item = [mItems objectForKey:name];
+    ObjectsFactoryRefId* refid = [self refId:name];
+	LayoutItem* item = [mItems objectForKey:refid.name];
 	if (item == nil)
 	{
 		return;
 	}
 	GameonModel* model = item.mModel;
-
 	
 	// TODO submodels
 	if ([model ref:0] == nil)
@@ -168,7 +178,7 @@
 	float rotate[3] = {0,0,0};
 	[ServerkoParse parseFloatArray:rotate max:3 forData:data]; 
 	
-	GameonModelRef* r = [model ref:0];
+	GameonModelRef* r = [model ref:refid.refid];
 	[r setRotate:rotate];
 	[r set];
 }
@@ -176,21 +186,38 @@
 
 
 
--(void)texture:(NSString*)name data:(NSString*)data 
+-(void)texture:(NSString*)name data:(NSString*)data submodel:(NSString*)submodel
 {
-	LayoutItem* item = [mItems objectForKey:name];
+    ObjectsFactoryRefId* refid = [self refId:name];
+    
+	LayoutItem* item = [mItems objectForKey:refid.name];
 	if (item == nil)
 	{
 		return;
 	}
 	GameonModel* model = item.mModel;
-	
-	int text = [mApp.textures getTexture:data];
-	[model setTexture:text ];
+	GameonModelRef* r = [model ref:refid.refid];
+    
+    if (data != nil && [data length] > 0)
+    {        
+        int text = [mApp.textures getTexture:data];
+        [model setTexture:text ];
+    }
+    
+    if (submodel != nil && [submodel length] > 0)
+    {
+        int arr[2];
+        [ServerkoParse parseIntArray:arr max:2 forData:submodel];
+        [r setOwner:arr[0] max:arr[1]];
+    }
 }
+
 //TODO mutliple references with name.refid , default 0!
 -(void)state:(NSString*)name data:(NSString*)data {
-	LayoutItem* item = [mItems objectForKey:name];
+    
+    ObjectsFactoryRefId* refid = [self refId:name];
+    
+	LayoutItem* item = [mItems objectForKey:refid.name];
 	if (item == nil)
 	{
 		return;
@@ -203,12 +230,12 @@
 	{
 		visible = true;
 	}
-	if ([model ref:0] == nil)
+	if ([model ref:refid.refid] == nil)
 	{
 		[self place:name data:@"0,0,0"];
 	}
 	
-	[[model ref:0] setVisible:visible];
+	[[model ref:refid.refid] setVisible:visible];
 	[model setVisible:visible];
 }
 
@@ -260,7 +287,7 @@
 	NSString* texture = [objData valueForKey:@"texture"];
 	if (texture != nil)
 	{
-		[self texture:name data:texture];
+		[self texture:name data:texture submodel:nil];
 	}			
 	
 	NSString* state = [objData valueForKey:@"state"];
@@ -269,6 +296,42 @@
 		[self state:name data:state];
 	}			
 }
+
+-(ObjectsFactoryRefId*)refId:(NSString*) name
+{
+    ObjectsFactoryRefId* refdata = [[[ObjectsFactoryRefId alloc] init]autorelease];
+    
+    NSRange i = [name rangeOfString:@"."];
+    if ( i.location  != NSNotFound )
+    {
+        
+        refdata.name = [name substringToIndex:i.location];
+        NSString* refid = [name substringFromIndex:i.location+1];
+        refdata.refid = [refid intValue];
+    }else
+    {
+        refdata.name = name;
+        refdata.refid = 0;
+    }
+    return refdata;
+}
+
+
+-(GameonModelRef*) getRef:(NSString*) name
+{
+    ObjectsFactoryRefId* refid = [self refId:name];
+    
+    LayoutItem* item = [mItems objectForKey:refid.name];
+    if (item == nil)
+    {
+        return nil;
+    }
+    GameonModel* model = item.mModel;
+    GameonModelRef* ref = [model getRef:refid.refid];
+    return ref;
+    
+}    
+
 
 @end
 

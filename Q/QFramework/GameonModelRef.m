@@ -186,6 +186,13 @@ static float mStaticBounds[] =
     mAreaPosition[2] = position[2];    	
 }
 
+- (void) setPosition:(float*)position
+{
+    
+    mPosition[0] = position[0];
+    mPosition[1] = position[1];
+    mPosition[2] = position[2];    	
+}
 
 - (void) addPosition:(float)ax y:(float)ay z:(float)az 
 {

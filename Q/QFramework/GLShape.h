@@ -41,5 +41,8 @@
 - (void) putIndices:(ShortBuffer*) buffer;
 -(GLVertex*) addVertex:(float)ax y:(float)ay z:(float)az tu:(float)atu tv:(float)atv c:(GLColor*)color;
 -(GLVertex*) addVertexNew:(float)ax y:(float)ay z:(float)az tu:(float)atu tv:(float)atv c:(GLColor*)color;
+-(GLVertex*) addVertexColorInt:(float)ax y:(float)ay z:(float)az tu:(float)atu tv:(float)atv c:(int)color;
+-(GLVertex*) addVertexColor:(float)ax y:(float)ay z:(float)az tu:(float)atu tv:(float)atv c:(int*)color;
+
 
 @end

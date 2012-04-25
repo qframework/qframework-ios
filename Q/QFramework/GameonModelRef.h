@@ -80,6 +80,7 @@
 - (void) addAreaPosition:(float)ax y:(float)ay z:(float)az;
 - (void) setAreaPosition:(float)ax y:(float)ay z:(float)az;
 - (void) setPosition:(float)ax y:(float)ay z:(float)az;
+- (void) setPosition:(float*)position;
 - (void) setScale:(float)ax y:(float)ay z:(float)az;   
 - (void) setRotate:(float)ax y:(float)ay z:(float)az;
 - (void) setRotate:(float*)rotate;

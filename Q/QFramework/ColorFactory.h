@@ -65,6 +65,11 @@
 -(GLColor*)getPlayerColorFore:(int) player;
 -(GLColor*)getColor:(NSString*)value;
 -(GLColor*)getColorId:(int) color;
-
++(int)getColorVal:(NSString*)value;
++(int) encode:(int)a r:(int)r g:(int)g b:(int)b;
++(int) decodeA:(int) col;
++(int) decodeR:(int) col;
++(int) decodeG:(int) col;
++(int) decodeB:(int) col;
 @end
 

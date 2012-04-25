@@ -700,7 +700,14 @@ function Models(qapp)
 	}
 	this.setTexture = function (name, texture, offset)
 	{
-		this.qapp.serverko.appendEvent( 6002 , name, texture + ";" + offset);
+		if (offset != undefined)
+		{
+			this.qapp.serverko.appendEvent( 6002 , name, texture + ";" + offset);
+		}else
+		{
+			this.qapp.serverko.appendEvent( 6002 , name, texture );
+		}
+		
 		return this.qapp.serverko;
 	}
 	
@@ -716,6 +723,26 @@ function Models(qapp)
 		return this.qapp.serverko;
 	}
 
+	this.newEmpty = function (name)
+	{
+		this.qapp.serverko.appendEvent( 6005 , name, "");
+		return this.qapp.serverko;		
+	}
+	
+	this.addShape = function (name, type, coords, colors, uvbounds )
+	{
+		this.qapp.serverko.appendEvent( 6006 , name, type, coords, colors, uvbounds);
+		return this.qapp.serverko;				
+	}
+	
+	this.addShapeFromData = function (name, data, uvbounds )
+	{
+		this.qapp.serverko.appendEvent( 6007 , name, data, uvbounds);
+		return this.qapp.serverko;						
+	}
+	
+	
+	
 	
     this.createModels = function(objs, send)
     {

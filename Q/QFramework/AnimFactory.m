@@ -326,9 +326,10 @@
 		return;
 	}
 	
-	LayoutItem* item = [mApp.objects get:objectid];
-	GameonModelRef* ref = item.mModelRef;
-	
+	//LayoutItem* item = [mApp.objects get:objectid];
+	//GameonModelRef* ref = item.mModelRef;
+	GameonModelRef* ref = [[mApp objects] getRef:objectid];
+    
 	int intdata[16];
 	int count = [ServerkoParse parseIntArray:intdata max:16 forData:delaydata];
 	

@@ -157,6 +157,17 @@
 }
  
 
++(int)getColorVal:(NSString*)value
+{
+    unsigned int dec;
+    NSScanner *scan = [NSScanner scannerWithString:value];
+    if ([scan scanHexInt:&dec])
+    {
+        return dec;
+    }
+    return 0xFFFFFFFF;
+}
+
 
 -(GLColor*)getColorId:(int) color
 {
@@ -199,5 +210,27 @@
 	return white;
 }
 
++(int) encode:(int)a r:(int)r g:(int)g b:(int)b
+{
+    return (a <<24) + (r << 16 ) + ( g << 8) + b;
+}
+
++(int) decodeA:(int) a
+{
+    return (a >> 24) & 255;
+}
+
++(int) decodeR:(int) a
+{
+    return (a >> 16) & 255;
+}
++(int) decodeG:(int) a
+{
+    return (a >> 8) & 255;
+}
++(int) decodeB:(int) a
+{
+    return a & 255;
+}
 
 @end

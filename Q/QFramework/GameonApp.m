@@ -115,6 +115,7 @@ static double currentTime()
 		mLastDragTime = 0;
 		mLastClickTime = 0;
 		mSupportOld = false;
+        mContentScale = 1;
     }
     return self;
 }
@@ -405,8 +406,8 @@ static double currentTime()
 {
     [mCS getScreenBounds:mScreenb hud:mHudb];
     NSString* script = [NSString stringWithFormat:@"Q.layout.canvasw = %f;Q.layout.canvash = %f;    Q.layout.worldxmin = %f;Q.layout.worldxmax = %f;    Q.layout.worldymin = %f;Q.layout.worldymax = %f;Q.layout.hudxmin = %f;Q.layout.hudxmax = %f;    Q.layout.hudymin = %f;Q.layout.hudymax = %f;",
-                        [mCS getCanvasW],
-                        [mCS getCanvasH],
+                        [mCS getCanvasW] / mContentScale,
+                        [mCS getCanvasH] / mContentScale,
                         mScreenb[0], mScreenb[2],
                         mScreenb[5], mScreenb[3],
                         mHudb[0], mHudb[2],
@@ -672,35 +673,6 @@ static double currentTime()
 
 
 
--(void) socialLogin:(NSString*)data callback:(NSString*)callback
-{
-
-}
-
--(void) reloadScores:(NSString*)data callback:(NSString*)callback
-{
-
-}
-
--(void) scoresSubmit:(NSString*)data callback:(NSString*)callback
-{
- 
-}
-
-- (void) scoreReported: (NSError*) error;
-{
-
-}
-
-
--(void) socialShow:(NSString*)data callback:(NSString*)callback
-{
-    [mSocialDelegate show];
-}
-
-
-
-
 
 -(void)processData
 {
@@ -741,6 +713,7 @@ static double currentTime()
     NSString* respdata = [response valueForKey:@"data"];
     NSString* respdata2 = [response valueForKey:@"data2"];
     NSString* respdata3 = [response valueForKey:@"data3"];
+    NSString* respdata4 = [response valueForKey:@"data4"];
     
     NSString* resptype = [response valueForKey:@"type"];
 
@@ -765,17 +738,33 @@ static double currentTime()
             [self setEnv:resptype value:respdata];
             break;
 		case 500:
-            [self socialLogin:resptype callback:respdata];
+            if (mSocialDelegate)
+            {
+                [mSocialDelegate startLogin:respdata];
+            }
             break;            
 		case 510:
-            [self scoresSubmit:resptype callback:respdata];
+            if (mSocialDelegate)
+            {
+                [mSocialDelegate startSubmitScore:resptype score:respdata message:respdata2 callback:respdata3];
+            }
+            
             break;            
 		case 520:
-            [self socialShow:resptype callback:respdata];
+            if (mSocialDelegate)
+            {
+                [mSocialDelegate startShow:resptype];
+            }
+            
             break;
 		case 521:
-            [self reloadScores:resptype callback:respdata];
+            if (mSocialDelegate)
+            {
+                [mSocialDelegate startGetScore:resptype callback:respdata];
+            }
+            
             break;            
+            
         case 1002:
             [self onTextInput:resptype script:respdata];
             //[mApp endScript];
@@ -820,7 +809,7 @@ static double currentTime()
             [mObjectsFact scale:resptype data:respdata];
             break;
         case 4130:
-            [mObjectsFact texture:resptype data:respdata];
+            [mObjectsFact texture:resptype data:respdata submodel:respdata2];
             break;
         case 4140:
             [mObjectsFact state:resptype data:respdata];
@@ -861,6 +850,15 @@ static double currentTime()
         case 6004:
             [mItems setSubmodels:resptype data:respdata];
             break;        	          	          	  
+        case 6005:
+            [mItems newEmpty:resptype];
+            break;        	          	          	              
+        case 6006:
+            [mItems addShape:resptype type:respdata transform:respdata2 colors:respdata3 uvbounds:respdata4];
+            break;        	          	          	                          
+        case 6007:
+            [mItems addShapeFromData:resptype data:respdata transform:respdata2 uvbounds:respdata3];
+            break;        	          	          	                                      
         case 7000:
             [self connect:resptype callback:respdata];
             break;            
@@ -910,6 +908,13 @@ static double currentTime()
     mInputTextSelector = sel;
     
 }
+
+
+-(void) setContentScale:(int)scale
+{
+    mContentScale = scale;
+}
+
 
 -(void) setSocial:(NSObject<SocialDelegate>*)delegate
 {

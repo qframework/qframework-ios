@@ -25,7 +25,8 @@ var testnames = [ "Coordinate system",
                   "Screen color",
                   "Lists",
                   "Anims",
-                  "Textures"];
+                  "Textures",
+                  "Models"];
 
 var testlinks = ["examples/coordinates.js",
                  "examples/worldhudsystem.js",
@@ -41,7 +42,8 @@ var testlinks = ["examples/coordinates.js",
                  "examples/animscreen.js",
                  "examples/lists.js",
                  "examples/anims.js",
-                 "examples/textures.js"];
+                 "examples/textures.js",
+                 "examples/models.js"];
 
 function main_loadresources()
 {

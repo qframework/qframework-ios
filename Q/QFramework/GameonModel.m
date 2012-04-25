@@ -30,6 +30,7 @@
 #import "AnimFactory.h"
 #import "GameonCS.h"
 #import "GameonApp.h"
+#import "GMath.h"
 
 @implementation GameonModel
 
@@ -39,6 +40,22 @@
 @synthesize mSubmodels;
 @synthesize mModelTemplate;
 @synthesize mName;
+
+static float mStaticBoundsPlane[] =  
+{ 
+    -0.5f,-0.5f,0.0f,1.0f,
+    0.5f,-0.5f,0.0f,1.0f,
+    -0.5f,0.5f,0.0f,1.0f,
+    0.5f,0.5f,0.0f,1.0f 
+};
+
+static float mStaticBounds[] =  
+{ 
+    0.0f,0.0f,0.0f,1.0f,
+    0.0f,0.0f,0.0f,1.0f,
+    0.0f,0.0f,0.0f,1.0f,
+    0.0f,0.0f,0.0f,1.0f 
+};
 
 - (id) initWithName:(NSString*)name app:(GameonApp*)app
 {
@@ -965,5 +982,144 @@
 {
 	mActive = active;
 }
+
+
+-(void)createModelFromData:(float*)inputdata length:(int)len transform:(float*)mat uvbounds:(float*) uvb
+{
+    float umid = (uvb[1] + uvb[0]) /2;
+    float vmid = (uvb[3] + uvb[2]) /2;
+    float ratiou = uvb[1] - uvb[0];
+    float ratiov = uvb[3] - uvb[2];
+    
+    float outvec[] = { 0 ,0,0,1};
+    int cols[] = {0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF};
+    float tu,tv;
+    
+    // model info - vertex offset?
+    //  v   c   uv
+    // (3 + 4 + 2) * 3
+    int off;
+    GLShape* shape = [[[GLShape alloc] initWithWorld:self] autorelease];
+    
+    for (int a=0; a< len; a+= 27 ) 
+    {
+        off = a;
+        
+        matrixVecMultiply2(mat, inputdata, off , outvec ,0);
+        cols[0] = inputdata[off+3];
+        cols[1] = inputdata[off+4];
+        cols[2] = inputdata[off+5];
+        cols[3] = inputdata[off+6];
+        tu = inputdata[off+7] * ratiou + umid;
+        tv  = inputdata[off+8] * ratiov + vmid;
+        GLVertex* v1 = [shape addVertexColor:outvec[0] y:outvec[1] z:outvec[2] tu:tu tv:tv c:cols];
+        
+        off += 9;
+        matrixVecMultiply2(mat, inputdata, off , outvec ,0);
+        cols[0] = inputdata[off+3];
+        cols[1] = inputdata[off+4];
+        cols[2] = inputdata[off+5];
+        cols[3] = inputdata[off+6];
+        tu = inputdata[off+7] * ratiou + umid;
+        tv  = inputdata[off+8] * ratiov + vmid;
+        GLVertex* v2 = [shape addVertexColor:outvec[0] y:outvec[1] z:outvec[2] tu:tu tv:tv c:cols];
+        
+        off += 9;
+        matrixVecMultiply2(mat, inputdata, off , outvec ,0);
+        cols[0] = inputdata[off+3];
+        cols[1] = inputdata[off+4];
+        cols[2] = inputdata[off+5];
+        cols[3] = inputdata[off+6];
+        tu = inputdata[off+7] * ratiou + umid;
+        tv  = inputdata[off+8] * ratiov + vmid;
+        
+        GLVertex* v3 = [shape addVertexColor:outvec[0] y:outvec[1] z:outvec[2] tu:tu tv:tv c:cols];
+        
+        GLFace* fc = [[[GLFace alloc] init] autorelease];
+        [fc setVertex:v1 v2:v2 v3:v3];
+        [shape addFace:fc];
+        
+    }
+    
+    [self addShape:shape];
+    mTextureID = 1;
+
+}
+
+
+-(void)addPlane:(float*)mat colors:(int*) cols colorlen:(int)colslength uvbounds:(float*)uvb 
+{
+
+    float ulow = uvb[0];
+    float uhigh =uvb[2];
+    float vlow = uvb[1];
+    float vhigh =uvb[3];
+    
+    GLShape* shape = [[[GLShape alloc] initWithWorld:self] autorelease];
+    matrixVecMultiply2(mat, mStaticBoundsPlane, 0 , mStaticBounds,0);
+    matrixVecMultiply2(mat, mStaticBoundsPlane, 4 , mStaticBounds,4);
+    matrixVecMultiply2(mat, mStaticBoundsPlane, 8 , mStaticBounds,8);
+    matrixVecMultiply2(mat, mStaticBoundsPlane, 12 , mStaticBounds,12);
+    
+    int count = 0;
+    GLVertex* leftBottomFront = [shape addVertexColorInt:mStaticBounds[0] y:mStaticBounds[1] z:mStaticBounds[2] tu:ulow tv:vhigh c:cols[count]];
+
+    count++; if (count >= colslength) count = 0;
+    GLVertex* rightBottomFront = [shape addVertexColorInt:mStaticBounds[4] y:mStaticBounds[5] z:mStaticBounds[6] tu:uhigh tv:vhigh c:cols[count]];    
+
+    count++; if (count >= colslength) count = 0;
+    GLVertex* leftTopFront = [shape addVertexColorInt:mStaticBounds[8] y:mStaticBounds[9] z:mStaticBounds[10] tu:ulow tv:vlow c:cols[count]];    
+    
+    count++; if (count >= colslength) count = 0;
+    GLVertex* rightTopFront = [shape addVertexColorInt:mStaticBounds[12] y:mStaticBounds[13] z:mStaticBounds[14] tu:uhigh tv:vlow c:cols[count]];    
+
+    count++; if (count >= colslength) count = 0;
+    // front
+    GLFace* face1 = [[[GLFace alloc] init] autorelease];
+    [face1   setVertex:leftBottomFront v2:rightTopFront v3:leftTopFront];
+    [shape addFace:face1];
+    
+    GLFace* face2 = [[[GLFace alloc] init] autorelease];
+    [face2   setVertex:leftBottomFront v2:rightBottomFront v3:rightTopFront];
+    [shape addFace:face2];
+    
+    [self addShape:shape];
+    
+}
+
+-(GameonModel*) copyOfModel
+{
+    GameonModel* model = [[GameonModel alloc] initWithName:mName app:mApp];
+    model.mEnabled = mEnabled;
+    model.mForceHalfTexturing = false;
+    model.mForcedOwner = 0;
+    model.mShapeList = mShapeList;	
+    model.mVertexList = mVertexList;
+    model.mVertexOffset = mVertexOffset;
+    model.mTextureID = mTextureID;
+    model.mIndexCount = mIndexCount;
+    
+    model.mForcedOwner = mForcedOwner;
+    model.mTextureW = mTextureW;
+    model.mTextureH = mTextureH;
+    return model;
+}
+
+-(GameonModelRef*)getRef:(int) count 
+{
+    if (count < [mRefs count]) 
+    {
+        return [mRefs objectAtIndex:count];
+    } else 
+    {
+        while (count >= [mRefs count])
+        {
+            GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:self];
+            [mRefs addObject:ref];
+        }
+        return [mRefs objectAtIndex:count];
+    }
+}
+
 
 @end

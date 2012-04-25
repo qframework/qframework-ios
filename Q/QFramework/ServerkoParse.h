@@ -76,4 +76,7 @@
 +(int) parseFloatArray:(float*)array max:(int)max forData:(NSString*) data;
 -(void)loadScript:(NSString*)file delay:(int)delay;
 -(void)start;
++(float*)parseFloatVector:(NSString*)data datalen:(int*)datalen;
++(int*) parseColorVector:(NSString*)data datalen:(int*)datalen;
+
 @end

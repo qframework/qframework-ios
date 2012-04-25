@@ -70,7 +70,6 @@ function setuplayout()
 	object3.texture = "qtext";
 	object3.state = "visible";
 
-	
 	var objects = new Array();
 	objects.push(object1);
 	objects.push(object2);

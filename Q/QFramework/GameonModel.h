@@ -112,6 +112,11 @@
 -(void) unsetWorld;
 -(void)setActive:(bool) active;
 -(void) createAnim:(NSString*)type forId:(int)refid delay:(NSString*)delay data:(NSString*) data;
+-(void)addPlane:(float*)mat colors:(int*) cols colorlen:(int)colslength uvbounds:(float*)uvb ;
+-(void)createModelFromData:(float*)inputdata length:(int)len transform:(float*)mat uvbounds:(float*) uvb;
+-(GameonModelRef*)getRef:(int) count;
+-(GameonModel*) copyOfModel;
+
 
 @end
 

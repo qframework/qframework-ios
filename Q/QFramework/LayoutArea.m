@@ -880,7 +880,7 @@
 		return nil;
 	}		
 
-    NSLog(@" Checking input %@ ==  %@ " , mID , mPageID);
+    //NSLog(@" Checking input %@ ==  %@ " , mID , mPageID);
     
     if ( [mParent.mPagePopup length] > 0 && ![mPageID isEqualToString:mParent.mPagePopup])
     {

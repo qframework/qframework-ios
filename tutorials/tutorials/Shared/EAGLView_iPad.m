@@ -208,6 +208,7 @@
     {
         width *= self.contentScaleFactor;
         height *= self.contentScaleFactor;
+        [mGameonApp setContentScale:self.contentScaleFactor];                    
         
     }
     

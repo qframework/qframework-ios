@@ -97,7 +97,7 @@
     bool mSupportOld;	
 
 	
-    
+    int mContentScale;
 }
 
 @property (nonatomic, readonly, getter=grid) LayoutGrid* mDataGrid;
@@ -152,10 +152,6 @@
 - (bool)hasData;
 
 ///
--(void) socialLogin:(NSString*)data callback:(NSString*)callback;
--(void) scoresSubmit:(NSString*)data callback:(NSString*)callback;
--(void) socialShow:(NSString*)data callback:(NSString*)callback;
--(void) reloadScores:(NSString*)data callback:(NSString*)callback;
 -(double)frameDelta;
 -(void)execScript:(NSString*)script;
 -(void) calcFrameDelay;
@@ -163,4 +159,6 @@
 -(void) onEvent2:(NSMutableDictionary*)response;
 -(void) setInputTextSelector:(NSObject*)sel;
 -(void) setSocial:(NSObject<SocialDelegate>*)delegate;
+-(void) setContentScale:(int)scale;    
+
 @end

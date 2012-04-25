@@ -21,6 +21,7 @@
 #import "GameonApp.h"
 #import "AsyncSocket.h"
 #import "JSON.h"
+#import "ColorFactory.h"
 
 @implementation ServerkoParse
 
@@ -407,4 +408,45 @@
     [mJSServerko runLoggers];
 
 }
+
+
++(int*) parseColorVector:(NSString*)data datalen:(int*)datalen
+{
+    int val = 0;
+    NSArray* tok = [data componentsSeparatedByString:@","];    
+    int len = [tok count];
+    int* array = malloc( sizeof(int)*len);
+    int count = 0;
+    for (int a=0; a< len; a++)
+    {
+        val = [ColorFactory getColorVal:[tok objectAtIndex:a]];
+        array[count++] = val;
+    }
+    
+    *datalen = len;
+    
+    return array;
+}
+
++(float*)parseFloatVector:(NSString*)data datalen:(int*)datalen
+{
+    float val = 0;
+    NSArray* tok = [data componentsSeparatedByString:@","];    
+    int len = [tok count];
+    float* array = malloc( sizeof(float)*len);
+    int count = 0;
+    for (int a=0; a< len; a++)
+    {
+        val = [[tok objectAtIndex:a] floatValue];
+        array[count++] = val;
+    }
+    
+    *datalen = len;
+        
+    return array;
+}
+
+
+
+
 @end

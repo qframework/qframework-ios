@@ -31,6 +31,9 @@
 	GameonApp*    	mApp;
 	GameonWorld*    mWorld;
 	NSMutableDictionary* mModels;
+    float    mDefaultTransf[9];
+    float    mDefaultUV[4];    
+    int      mDefaultColors[2];    
 }
 
 
@@ -44,5 +47,9 @@
 - (GameonModel*) createFromType:(int)template color:(GLColor*)color texture:(int)texid;
 -(void)initModels:(NSMutableDictionary*)response;
 -(GameonModel*)getFromTemplate:(NSString*)strType data:(NSString*)strData;
+-(void)addShapeFromData:(NSString*)name data:(NSString*)data transform:(NSString*)transform uvbounds:(NSString*) uvbounds;
+-(void)addShape:(NSString*)name type:(NSString*)type transform:(NSString*)transform colors:(NSString*)colors uvbounds:(NSString*)uvbounds;
+-(void)newEmpty:(NSString*) name;
+
 
 @end

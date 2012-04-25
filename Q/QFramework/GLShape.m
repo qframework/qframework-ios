@@ -22,6 +22,7 @@
 #import "GLFace.h"
 #import "GLColor.h"
 #import "GLVertex.h"
+#import "ColorFactory.h"
 
 @implementation GLShape
 - (id) init
@@ -120,6 +121,76 @@
     vertex.green= color.green;
     vertex.blue= color.blue;
     vertex.alpha= color.alpha;    
+    [mVertexList addObject:vertex];
+    return vertex;
+}
+
+-(GLVertex*) addVertexColor:(float)ax y:(float)ay z:(float)az tu:(float)atu tv:(float)atv c:(int*)color
+{
+    
+    // look for an existing GLVertex first
+    int red = (int)(color[1]);
+    int green = (int)(color[2]);
+    int blue = (int)(color[3]);
+    int alpha = (int)(color[0]);
+
+    
+    for (int a=0; a< [mVertexList count]; a++)
+    {
+        GLVertex* vertex = [mVertexList objectAtIndex:a];
+        if (vertex.x == ax && vertex.y == ay && vertex.z == az &&
+            vertex.tu == atu && vertex.tv == atv && 
+            vertex.red== red &&
+            vertex.green== green &&
+            vertex.blue== blue &&
+            vertex.alpha== alpha) {
+            return vertex;
+        }
+        
+    }
+    
+    // doesn't exist, so create new vertex
+    GLVertex* vertex = [mWorld addVertex:ax y:ay z:az tu:atu tv:atv];
+	vertex.red= red;
+	vertex.green= green;
+	vertex.blue= blue;
+	vertex.alpha= alpha;
+    
+    [mVertexList addObject:vertex];
+    return vertex;
+}
+
+-(GLVertex*) addVertexColorInt:(float)ax y:(float)ay z:(float)az tu:(float)atu tv:(float)atv c:(int)color
+{
+    
+    // look for an existing GLVertex first
+    int red = (int)[ColorFactory decodeR:color];
+    int green = (int)[ColorFactory decodeG:color];
+    int blue = (int)[ColorFactory decodeB:color];
+    int alpha = (int)[ColorFactory decodeA:color];
+    
+    
+    for (int a=0; a< [mVertexList count]; a++)
+    {
+        GLVertex* vertex = [mVertexList objectAtIndex:a];
+        if (vertex.x == ax && vertex.y == ay && vertex.z == az &&
+            vertex.tu == atu && vertex.tv == atv && 
+            vertex.red== red &&
+            vertex.green== green &&
+            vertex.blue== blue &&
+            vertex.alpha== alpha) {
+            return vertex;
+        }
+        
+    }
+    
+    // doesn't exist, so create new vertex
+    GLVertex* vertex = [mWorld addVertex:ax y:ay z:az tu:atu tv:atv];
+	vertex.red= red;
+	vertex.green= green;
+	vertex.blue= blue;
+	vertex.alpha= alpha;
+    
     [mVertexList addObject:vertex];
     return vertex;
 }

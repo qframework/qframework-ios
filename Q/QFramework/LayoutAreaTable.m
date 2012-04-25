@@ -288,17 +288,17 @@
 			fcolor = mApp.colors.white;//getPlayerColor(owner);
 		}
 		
-		float div = (float)mSizeH / mSize;
+		float div = (float)mSizeW / mSize;
 		GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:nil];
 		ref.mLoc = mDisplay;
-		float scrollpos = mScrollers[0] / (mScrollers[2]-mScrollers[1]+div);		    
+		float scrollpos = mScrollers[0] * div * 2; // (mScrollers[2]-mScrollers[1]+div);		    
 		if (mSubType == LATST_LIST)
 		{
-			[model createPlane:0.40f btm:(-div/2) b:0.01f r:0.5f t:div/2  f:0.01f c:fcolor];
+			[model createPlane:0.43f btm:(-div/2) b:0.01f r:0.5f t:div/2  f:0.01f c:fcolor];
 			[ref setPosition:0.0f y:(- scrollpos * mBounds[1]) z:0.001f];
 		}else
 		{
-			[model createPlane:-div/2 btm:0.40f b:0.01f r:div/2 t:0.5f f:0.01f c:fcolor];
+			[model createPlane:-div/2 btm:0.43f b:0.01f r:div/2 t:0.5f f:0.01f c:fcolor];
 			[ref setPosition:(- scrollpos * mBounds[0]) y:0.0f z:0.001f];
 			
 		}
@@ -326,8 +326,8 @@
 -(void)createDefaultFields
 {
 	float div = (float)mSizeW / (float)mSize;
-	mScrollers[1] = -0.5f + div/3;
-	mScrollers[2] = 0.5f - div/3;
+	mScrollers[1] = -0.5f + div/2;
+	mScrollers[2] = 0.5f - div/2;
 	if (mScrollers[0] < mScrollers[1])
 	{
 		mScrollers[0] = mScrollers[1];
@@ -475,8 +475,8 @@
 		[mModel setActive:true];
 		[mModel setState:LAS_VISIBLE];
 		GameonModelRef* ref = [mModel ref:0];
-		float div = (float)mSizeH / mSize;
-		float scrollpos = mScrollers[0] / (mScrollers[2]-mScrollers[1]+div);
+		//float div = (float)mSizeW / mSize;
+		float scrollpos = mScrollers[0];// (mScrollers[2]-mScrollers[1]+div);
 		if (mHasScrollV)
 		{
 			[ref setPosition:0.0f y:-scrollpos*mBounds[1] z:0.001f];

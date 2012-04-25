@@ -36,6 +36,13 @@
 @synthesize mTextureID;
 @synthesize mForceHalfTexturing;
 @synthesize mForcedOwner;
+@synthesize mShapeList;	
+@synthesize mVertexList;
+@synthesize mTextureW;
+@synthesize mTextureH;
+@synthesize mIndexCount;
+@synthesize mVertexOffset;
+
 
 - (id) initWithApp:(GameonApp*)app
 {
@@ -68,7 +75,6 @@
         mTextureW = 1;
         mTextureH = 1;
         mTextureID = 1;
-        mTransform = false;
         mForceHalfTexturing = false;
         mForcedOwner = 0;
         mVertexOffset = 0;
@@ -244,8 +250,10 @@
 
 -(void) setTextureOffset:(int)aw h:(int)ah 
 {
-    mTextureW = aw;
-    mTextureH = ah;
+    if (aw > 0)
+        mTextureW = aw;
+    if (ah > 0)
+        mTextureH = ah;
     mTextureOffset = 0;
 }
 - (void) reset {
