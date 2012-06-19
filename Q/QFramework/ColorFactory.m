@@ -107,11 +107,11 @@
 {
     switch (player)
     {
-        case 0: return gray;
-        case 1: return red;
-        case 4: return blue;
-        case 2: return green;
-        case 3: return orange;//yellow;    	
+        case 0: return [gray copyColor];
+        case 1: return [red copyColor];
+        case 4: return [blue copyColor];
+        case 2: return [green copyColor];
+        case 3: return [orange copyColor];//yellow;    	
     }
     return white;
 }
@@ -120,10 +120,10 @@
 {
     switch (player)
     {
-        case 1: return redL;
-        case 4: return blueL;
-        case 2: return greenL;
-        case 3: return yellowL;    	
+        case 1: return [redL copyColor];
+        case 4: return [blueL copyColor];
+        case 2: return [greenL copyColor];
+        case 3: return [yellowL copyColor];    	
     }
     return white;
     
@@ -153,7 +153,7 @@
     return white;
     }
  */
-    return white;
+    return [white copyColor];
 }
  
 
@@ -174,40 +174,40 @@
 	switch(color)
 	{
 		case 0:
-			return white;
+			return [white copyColor];
 		case 1:
-			return red;
+			return [red copyColor];
 		case 2:
-			return green;
+			return [green copyColor];
 		case 3:
-			return blue;
+			return [blue copyColor];
 		case 4:
-			return yellow;
+			return [yellow copyColor];
 		case 5:
-			return magnenta;
+			return [magnenta copyColor];
 		case 6:
-			return brown;
+			return [brown copyColor];
 		case 7:
-			return black;
+			return [black copyColor];
 		case 8:
-			return gray;
+			return [gray copyColor];
 		case 9:
-			return redL;
+			return [redL copyColor];
 		case 10:
-			return greenL;
+			return [greenL copyColor];
 		case 11:
-			return blueL;
+			return [blueL copyColor];
 		case 12:
-			return yellowL;
+			return [yellowL copyColor];
 		case 13:
-			return magnentaL;
+			return [magnentaL copyColor];
 		case 14:
-			return brownL;
+			return [brownL copyColor];
 		case 15:
-			return grayL;
+			return [grayL copyColor];
 	}
 	
-	return white;
+	return [white copyColor];
 }
 
 +(int) encode:(int)a r:(int)r g:(int)g b:(int)b
@@ -232,5 +232,6 @@
 {
     return a & 255;
 }
+
 
 @end

@@ -27,6 +27,7 @@
 @class GameonModel;
 @class AnimData;
 @class GameonApp;
+@class BodyData;
 
 @interface GameonModelRef : NSObject {
 
@@ -45,13 +46,14 @@
 
     GameonModel*	mParent;
     bool 	mAdded;
-    GameonWorld_Location    mLoc;
+    int    mLoc;
     bool	mVisible;
 	bool	mEnabled;
 	
     bool		mAnimating;
     float*      mBounds;
     AnimData*	mAnimData;
+    BodyData*   mPsyData;
 	
 }
 
@@ -63,13 +65,14 @@
 @property (nonatomic, assign) GLfloat* mScaleAdd;
 @property (nonatomic, assign) GLfloat* mMatrix;
 
-@property (nonatomic, assign) GameonWorld_Location    mLoc;
+@property (nonatomic, assign) int    mLoc;
 @property (nonatomic, assign) bool	mEnabled;
 
 @property (nonatomic, assign) bool mTransformOwner;
 @property (nonatomic, readonly, getter = animating) bool mAnimating;
 @property (nonatomic, assign) int	   mOwner;
 @property (nonatomic, assign) int	   mOwnerMax;
+@property (nonatomic, readonly) bool	   mVisible;
 
 - (void) setParent:(GameonModel*)parent;
 - (void) clear;
@@ -101,7 +104,7 @@
 - (void) setAreaPosition:(float*)position;
 -(void) mulScale:(float*)scale;
 - (void) set;
-- (id) initWithParent:(GameonModel*)parent;
+- (id) initWithParent:(GameonModel*)parent andDomain:(int)loc;
 - (bool) getVisible;
 -(void) setVisible:(bool) visible;
 -(float*) matrix;
@@ -109,6 +112,7 @@
 -(void) activateAnim;
 -(float) intersectsRay:(float*)eye ray:(float*)ray loc:(float*)loc;
 -(void) animate:(long) deltaTime;
+-(void)assignPsyData:(BodyData*)bodydata;
 
 @end
 

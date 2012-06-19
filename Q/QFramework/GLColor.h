@@ -40,4 +40,6 @@
 - (id) initWithRGBA:(int)rgb;
 - (id) initWithRGBA:(int)ared g:(int)agreen b:(int)ablue;
 - (bool) equals:(GLColor*)color;
+-(GLColor*) copyColor;
+
 @end

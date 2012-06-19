@@ -354,12 +354,11 @@ function Layout(qapp)
 	    return this.qapp.serverko;
 	}
 	
-//------------------------------
-	
-	this.areaSetItemScale = function ( area, index, loc)   
+//------------------------------	
+	this.areaMove = function ( area , delta)
 	{
-	    this.qapp.serverko.appendEvent( 3192 , area , index + ","+ loc );
-	    return this.qapp.serverko;
+		this.qapp.serverko.appendEvent( 3196 , area , delta );
+		return this.qapp.serverko;
 	}
 	
 //------------------------------

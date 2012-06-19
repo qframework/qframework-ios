@@ -28,6 +28,7 @@
 #import "LayoutItem.h"
 #import "GameonModel.h"
 #import "GameonApp.h"
+#import "RenderDomain.h"
 
 @implementation LayoutField
 
@@ -142,16 +143,9 @@
     [self removeFigure];
     if (mText != nil)
     {
-        if (mParent.mDisplay == GWLOC_HUD)
-        {
-            TextRender* r = mApp.world.mTextsHud;
-            [r remove:mText];
-        }
-        else
-        {
-            TextRender* r = mApp.world.mTexts;
-            [r remove:mText];
-        }                
+        RenderDomain* domain = [mApp.world getDomain:mParent.mDisplay];
+        [domain removeText:mText];
+        
         [mText release];
         mText = nil;
     }
@@ -198,12 +192,13 @@
     {
         return;
     }
+    RenderDomain* domain = [mApp.world getDomain:mParent.mDisplay];
+    
 	if (data == nil || [data length] == 0)
 	{
 		if (mText != nil)
 		{
-			[mApp.world.mTextsHud remove:mText];
-			[mApp.world.mTexts remove:mText];
+            [domain removeText:mText];
             [mText release];
 			mText = nil;
 		}
@@ -215,40 +210,19 @@
 		[mText setRef];
     }else {
         
-        
-        if (mParent.mDisplay == GWLOC_HUD)
-        {        
-            if (num > 0) {
-                mText = [[TextItem alloc] initWithApp:mApp x:x y:y w:w h:h z:(mZ+0.002f) t:data n:num o:mOwner
-							loc:mParent.mDisplay layout:mParent.mLayout colors:[mParent getColors]];
-            }else{
-                mText = [[TextItem alloc] initWithApp:mApp x:x y:y w:w h:h z:(mZ+0.002f) t:data o:mOwner
-							loc:mParent.mDisplay layout:mParent.mLayout colors:[mParent getColors]];
-            }
-        }else {
-            if (num > 0) {
-                mText = [[TextItem alloc] initWithApp:mApp x:x y:y w:w h:h z:(mZ+0.002f) 
-                                                     t:data n:num o:mOwner                         
-							loc:mParent.mDisplay layout:mParent.mLayout colors:[mParent getColors]];
-            }else{
-                mText = [[TextItem alloc] initWithApp:mApp x:x y:y w:w h:h z:(mZ+0.002f) t:data o:mOwner
-							loc:mParent.mDisplay layout:mParent.mLayout colors:[mParent getColors]];
-            }            
-        }
+        if (num > 0) {
+            mText = [[TextItem alloc] initWithApp:mApp x:x y:y w:w h:h z:(mZ+0.002f) 
+                                                 t:data n:num o:mOwner                         
+                        loc:mParent.mDisplay layout:mParent.mLayout colors:[mParent getColors]];
+        }else{
+            mText = [[TextItem alloc] initWithApp:mApp x:x y:y w:w h:h z:(mZ+0.002f) t:data o:mOwner
+                        loc:mParent.mDisplay layout:mParent.mLayout colors:[mParent getColors]];
+        }            
 
 
-        if (mParent.mDisplay == GWLOC_HUD)
-        {
-            TextRender* r = mApp.world.mTextsHud;
-            [r add:mText visible:mParent.mState == LAS_VISIBLE && mParent.mPageVisible];
-            [mText setParent:r];
-        }
-        else
-        {
-            TextRender* r = mApp.world.mTexts;
-            [r add:mText visible:mParent.mState == LAS_VISIBLE && mParent.mPageVisible];
-            [mText setParent:r];            
-        } 			
+        TextRender* r = [domain texts];
+        [r add:mText visible:mParent.mState == LAS_VISIBLE && mParent.mPageVisible];
+        [mText setParent:r];            
     }
     
     GameonModelRef* ref = mText.mRef;
@@ -382,7 +356,18 @@
 		[mItem.mModel createAnim:type forId:index delay:delay data:data];
 	}		
 }
-	
+
+
+-(float) distFromCenter:(float*)loc
+{
+    
+    float x = fabsf(loc[0] - mX);
+    float y = fabsf(loc[1] - mY);
+    float z = fabsf(loc[2] - mZ);    
+    return sqrtf( x*x+ y*y + z*z );
+}
+
+
 @end
 
 

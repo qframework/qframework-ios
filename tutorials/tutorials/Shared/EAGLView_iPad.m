@@ -25,6 +25,13 @@
 #import "GameonApp.h"
 #import "TextInput.h"
 
+static double currentTime()
+{
+    
+    NSTimeInterval tm = [NSDate timeIntervalSinceReferenceDate];
+    return tm * 1000;
+}
+
 @implementation EAGLView_iPad
 
 @synthesize animating;
@@ -79,7 +86,7 @@
         animationFrameInterval = 2;
         displayLink = nil;
         animationTimer = nil;
-
+        mPressStart = 0;
         // A system version of 3.1 or greater is required to use CADisplayLink. The NSTimer
         // class is used as fallback when it isn't available.
         NSString *reqSysVer = @"3.1";
@@ -215,8 +222,8 @@
     NSString* preexec = [NSString stringWithFormat:@"CanvasW = %d;CanvasH = %d;" , 
                          width ,height];                            
     
-    //[mGameonApp setSplashSize:-1.3 y1:-1.3 x2:1.3 y2:1.3];    
-    //[mGameonApp setSplash:@"font.png" delay:3000];
+    [mGameonApp setSplashSize:-1.3 y1:-1.3 x2:1.3 y2:1.3];    
+    [mGameonApp setSplash:@"font.png" delay:3000];
     [mGameonApp start:@"main.js" preexec:preexec];
     
     
@@ -226,15 +233,17 @@
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     // Enumerates through all touch object
+    long delta = (long)(currentTime() - mPressStart);
+    
     for (UITouch *touch in touches) {
         CGPoint	location;
         location = [touch locationInView:self];
         if ([self respondsToSelector:@selector(setContentScaleFactor:)])
         {
-            [mGameonApp performClick:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor];
+            [mGameonApp touchEnd:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor delay:delta];
             
         }else {
-            [mGameonApp performClick:location.x y:location.y];
+            [mGameonApp touchEnd:location.x y:location.y  delay:delta];
         }
         
         
@@ -262,14 +271,17 @@
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    mPressStart = currentTime();
     for (UITouch *touch in touches) {
         CGPoint	location;
         location = [touch locationInView:self];
         if ([self respondsToSelector:@selector(setContentScaleFactor:)])
         {
+            [mGameonApp touchStart:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor];            
             [mGameonApp onFocusProbe:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor];
 
         }else {
+            [mGameonApp touchStart:location.x y:location.y];            
             [mGameonApp onFocusProbe:location.x y:location.y];
         }
 

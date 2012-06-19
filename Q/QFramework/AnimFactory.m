@@ -343,8 +343,10 @@
 		delay = intdata[0];    	
 	if (count == 2)
 		repeat = intdata[1];
-	[self buildObjectAdata:ref atype:atype delay:delay repeat:repeat data:data callback:callback];
-	  
+    if (ref != nil)
+    {
+        [self buildObjectAdata:ref atype:atype delay:delay repeat:repeat data:data callback:callback];
+    }
 	// ref - is animated! - has AnimData, once allocated
 	
 	
@@ -354,7 +356,7 @@
 {
 	AnimFactory_AnimType* atype = [mAnimations objectForKey:animid];
 	
-	if (atype == nil)
+	if (atype == nil || start == nil)
 	{
 		return;
 	}
@@ -375,7 +377,6 @@
 
 	
 	AnimData* adata = [end getAnimData:mApp];
-
 	[adata setDelay:delay repeat:repeat];
 	[adata setup2:atype start:start end:end];
 	[end activateAnim];

@@ -26,11 +26,12 @@
 #import <OpenGLES/ES1/glext.h>
 #import "TextureFactory.h"
 #import "GameonApp.h"
+#import "RenderDomain.h"
+#import "ServerkoParse.h"
 
 @implementation GameonWorld
 
 @synthesize mTexts;
-@synthesize mTextsHud;
 
 float gAmbientLight[4] = { 1.0f, 1.0f, 1.0f, 1.0f};
 bool gAmbientLightChanged = false;
@@ -41,17 +42,17 @@ bool gAmbientLightChanged = false;
 	{
         mApp = app;
         mModelList = [[NSMutableArray alloc] init] ;
-		mVisibleModelList = [[NSMutableArray alloc] init] ;
         mModelList2 = [[NSMutableArray alloc] init] ;        
-		mVisibleModelList2 = [[NSMutableArray alloc] init] ;        
         mNewModels = [[NSMutableArray alloc] init];
+        mDomains = [[NSMutableArray alloc] init];
         
         mTexts = [[TextRender alloc] init];
-        mTextsHud = [[TextRender alloc] init];
         mLocked = false;
         mLockedDraw = false;
         mInDraw = false;
 		
+        [self addDomain:@"world" domain:0 visible:true];
+        [self addDomain:@"hud" domain:INT_MAX visible:true];
 		
     }
     return self;
@@ -59,14 +60,12 @@ bool gAmbientLightChanged = false;
 
 - (void) dealloc
 {
+    [mDomains release];
     [mSplashModel release];
     [mModelList release] ;
-	[mVisibleModelList release] ;
     [mNewModels release] ;
     [mModelList2 release] ;    
-	[mVisibleModelList2 release] ;    
     [mTexts release] ;
-    [mTextsHud release] ;
     [super dealloc];
 }
 
@@ -86,12 +85,12 @@ bool gAmbientLightChanged = false;
 	
 //	[model createPlane:-2.0 btm:-1.32f b:0.0f r:2.0f t:1.32f f:0.0f c:mApp.colors.white];
 	
-    [model createPlane:mApp.mSplashX1 btm:mApp.mSplashY1 b:0.0f r:mApp.mSplashX2 t:mApp.mSplashY2 f:0.0f c:mApp.colors.white];    
+    [model createPlane:mApp.mSplashX1 btm:mApp.mSplashY1 b:0.0f r:mApp.mSplashX2 t:mApp.mSplashY2 f:0.0f c:mApp.colors.white grid:nil];    
     
 	[mApp.textures newTexture:@"q_splash" file:name];
 	[model setTexture:[mApp.textures getTexture:@"q_splash"]];
-	GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:nil];
-	ref.mLoc = GWLOC_HUD;
+	GameonModelRef* ref = [[GameonModelRef alloc] init];
+	ref.mLoc = INT_MAX;
     [ref setVisible:true];
     [ref set];
 	[model addref:ref];
@@ -109,6 +108,16 @@ bool gAmbientLightChanged = false;
     if ([mModelList indexOfObject:model]!= NSNotFound) {    
         [mModelList removeObject:model];
     }
+    
+    for (RenderDomain* domain in mDomains)
+    {
+        if ( [domain hasVisible:model])
+        {
+        
+            [domain remVisible:model force:true];
+        }
+    }
+    
     //[model retain];
     
 }
@@ -165,59 +174,13 @@ bool gAmbientLightChanged = false;
 		gAmbientLightChanged = false;
 	}	
     //NSLog(@" start draw ---------");
-    int len = [mVisibleModelList count];
-    for (int a=0; a< len; a++) {
-        GameonModel* model = [mVisibleModelList objectAtIndex:a];
-        
-        if (!model.mHasAlpha)
-            [model draw:GWLOC_WORLD];
+    for (RenderDomain* domain in mDomains)
+    {
+        [domain draw];
     }
 
-    for (int a=0; a < len; a++) {
-        GameonModel* model = [mVisibleModelList objectAtIndex:a];
-        if (model.mHasAlpha)
-            [model draw:GWLOC_WORLD];
-    }
-    
-    len = [mVisibleModelList2 count];    
-    for (int a=0; a< len; a++) {
-        GameonModel* model = [mVisibleModelList2 objectAtIndex:a];
-        
-        if (!model.mHasAlpha)
-            [model draw:GWLOC_WORLD];
-    }    
-    for (int a=0; a< len; a++) {
-        GameonModel* model = [mVisibleModelList2 objectAtIndex:a];
-        
-        if (model.mHasAlpha)
-            [model draw:GWLOC_WORLD];
-    }    
-    
-	[mTexts render];
     
     
-}
-
--(void) drawHud
-{
-    //NSLog(@" start draw hud ---------");
-    
-    int len = [mVisibleModelList count];
-    for (int a=len-1; a >= 0; a--) {
-        GameonModel* model = [mVisibleModelList objectAtIndex:a];
-            [model draw:GWLOC_HUD];
-    }
-    
-    len = [mVisibleModelList2 count];
-    for (int a=len-1; a >= 0 ; a--) {
-        GameonModel* model = [mVisibleModelList2 objectAtIndex:a];
-        [model draw:GWLOC_HUD];
-        
-    }
-
-    //glDisable(GL_DEPTH_TEST);
-	[mTextsHud render];
-    //glEnable(GL_DEPTH_TEST);
 }
 
 -(void) prepare{
@@ -281,7 +244,11 @@ bool gAmbientLightChanged = false;
     [mModelList removeAllObjects];    
     [mNewModels removeAllObjects];
     [mTexts clear];
-    [mTextsHud clear];
+    for (RenderDomain* domain in mDomains)
+    {
+        [domain clear];
+    }
+    
     mLocked = false;
     mLockedDraw = false;
     
@@ -299,60 +266,6 @@ bool gAmbientLightChanged = false;
     mLockedDraw = false;*/
 }
 
--(void) setVisible:(GameonModel*) model
-{
- 	if (model.mIsModel)
-	{
-		if ([mVisibleModelList2 indexOfObject:model] == NSNotFound)
-		{
-            for (int b = 0; b < [mVisibleModelList2 count]; b++)
-            {
-                GameonModel* oldmodel = [mVisibleModelList2 objectAtIndex:b];
-                if (model.mTextureID == oldmodel.mTextureID)
-                {
-                    [mVisibleModelList2 insertObject:model atIndex:b];
-                    return;
-                }                
-            }
-            
-			[mVisibleModelList2 addObject:model];	
-		} 
-	}else
-	{
-		if ([mVisibleModelList indexOfObject:model]  == NSNotFound)
-		{
-            for (int b = 0; b < [mVisibleModelList count]; b++)
-            {
-                GameonModel* oldmodel = [mVisibleModelList objectAtIndex:b];
-                if (model.mTextureID == oldmodel.mTextureID)
-                {
-                    [mVisibleModelList insertObject:model atIndex:b];
-                    return;
-                }                
-            }
-            
-            
-			[mVisibleModelList addObject:model];	
-		}		
-	}
-}
-
--(void) remVisible:(GameonModel*) model
-{
-	if (model.mIsModel)
-	{
-		if ([mVisibleModelList2 indexOfObject:model] != NSNotFound)
-		{
-			[mVisibleModelList2 removeObject:model];	
-		}
-	}else
-	{
-		if ([mVisibleModelList indexOfObject:model]  != NSNotFound)
-		{
-			[mVisibleModelList removeObject:model];	
-		}		
-	}
-}
 
 -(void) drawSplash
 {
@@ -365,7 +278,7 @@ bool gAmbientLightChanged = false;
             gAmbientLightChanged = false;
         }  
         [mSplashModel setState:LAS_VISIBLE];
-		[mSplashModel draw:GWLOC_HUD];
+		[mSplashModel draw:INT_MAX];
         [mSplashModel setState:LAS_HIDDEN];        
 	}
 	
@@ -400,5 +313,140 @@ bool gAmbientLightChanged = false;
 
 	
 }
+
+-(RenderDomain*) getDomain:(int) id
+{
+    for (RenderDomain* domain in mDomains)
+    {
+        if (domain.mRenderId == id)
+        {
+            return domain;
+        }
+    }
+    return nil;
+}
+
+-(RenderDomain*) getDomainByName:(NSString*) name
+{
+    for (RenderDomain* domain in mDomains)
+    {
+        if ([domain.mName isEqualToString:name])
+        {
+            return domain;
+        }
+    }
+    return nil;
+}	
+
+-(RenderDomain*) addDomain:(NSString*)name domain:(int)i visible:(bool) visible
+{
+    for (RenderDomain* domain in mDomains)
+    {
+        if ([domain.mName isEqualToString:name] || domain.mRenderId == i)
+        {
+            return nil;
+        }
+    }
+    RenderDomain* newdomain = [[RenderDomain alloc] initWithName:name forApp:mApp w:mViewWidth h:mViewHeight renderid:i];
+    if (visible)
+    {
+        [newdomain show];
+    }
+    
+    bool inserted = false;
+    for (int a= 0 ; a< [mDomains count]; a++)
+    {
+        RenderDomain* old = [mDomains objectAtIndex:a];
+        if (old.mRenderId > i)
+        {
+            [mDomains insertObject:newdomain atIndex:a];
+            inserted = true;
+            break;
+        }
+    }
+    
+    if (!inserted)
+    {
+        [mDomains addObject:newdomain];
+    }
+    return newdomain;
+}
+
+
+-(void)onSurfaceChanged:(int)width h:(int) height
+{
+    mViewWidth = (float)width;
+    mViewHeight = (float)height;
+    for (RenderDomain* domain in mDomains)
+    {
+        [domain onSurfaceChanged:width h:height];
+    }
+}
+
+-(void)onSurfaceCreated
+{
+    for (RenderDomain* domain in mDomains)
+    {
+        [domain onSurfaceCreated];
+    }
+}
+
+-(void)domainCreate:(NSString*)name domainid:(NSString*)domid bounds:(NSString*)coordsstr 
+{
+    RenderDomain* domain = [self getDomainByName:name];
+    if (domain != nil)
+    {
+        return;
+    }
+    
+    RenderDomain* newdomain  = [self addDomain:name domain:[domid intValue] visible:false];
+    if (newdomain != nil && coordsstr != nil && [coordsstr length] > 0)
+    {
+        float coords[4];
+        [ServerkoParse parseFloatArray:coords max:4 forData:coordsstr];
+        [newdomain setBounds:(int)mViewWidth h:(int)mViewHeight bounds:coords];
+        
+        
+    }
+}
+
+-(void)domainRemove:(NSString*) name
+{
+    RenderDomain* domain = [self getDomainByName:name];
+    if (domain != nil)
+    {
+        [domain clear];
+        [mDomains removeObject:domain];
+    }
+}
+
+-(float) gerRelativeX:(float) x
+{
+    return x/mViewWidth;
+}
+
+-(float) gerRelativeY:(float) y
+{
+    return y/mViewHeight;
+}
+
+-(void)domainShow:(NSString*) name
+{
+    RenderDomain* domain = [self getDomainByName:name];
+    if (domain != nil)
+    {
+        [domain show];
+    }
+}
+
+-(void)domainHide:(NSString*) name
+{
+    RenderDomain* domain = [self getDomainByName:name];
+    if (domain != nil)
+    {
+        [domain hide];
+    }		
+}
+
 
 @end

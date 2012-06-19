@@ -37,8 +37,7 @@
 
 - (id)initWithApp:(GameonApp*) app;
 - (LayoutItem*)get:(NSString*) name;
-- (void)removeModel:(NSString*) name;
-- (void)create:(NSString*)name data:(NSString*) data;
+- (void)create:(NSString*)name data:(NSString*) data color:(NSString*)color;
 - (void)place:(NSString*)name data:(NSString*) data;
 - (void)scale:(NSString*)name data:(NSString*) data;
 - (void)texture:(NSString*)name data:(NSString*)data submodel:(NSString*)submodel;

@@ -21,6 +21,7 @@
 
 @class GameonModelRef;
 @class TextItem;
+@class RenderDomain;
 
 @interface TextRender : NSObject {
 
@@ -29,7 +30,7 @@
     NSMutableArray*             mTexts;
 	NSMutableArray*             mVisibleTexts;
 	NSMutableArray*             mToDelete;
-    
+    RenderDomain*               mWorld;
 }
 
 
@@ -39,5 +40,6 @@
 - (void)add:(TextItem*)item visible:(bool)visible;
 - (void) removeVisible:(TextItem*) textItem;
 - (void) addVisible:(TextItem*)textItem ;
+-(id) initWithDomain:(RenderDomain*)domain;
 
 @end

@@ -72,7 +72,7 @@
         [mJSServerko execScript:script];        
     }else {
         NSMutableString* userdata = [[[NSMutableString alloc] init] autorelease];
-        [userdata appendFormat:@"Q.handlers.script_userData('%@', '%@');",mUsername,datastr];
+        [userdata appendFormat:@"Q_handlers_script_userData('%@', '%@');",mUsername,datastr];
         [mJSServerko execScript:userdata];
         
     }
@@ -127,10 +127,6 @@
 
     double delay = (float)time * 0.001;
     
-    if (delay < 1)
-    {
-        delay = 1;
-    }
     
     [mJSServerko performSelector:@selector(execScript:) withObject:respdata afterDelay:delay];
     
@@ -142,12 +138,6 @@
 -(void)loadScript:(NSString*)file delay:(int)scriptdelay
 {
     double delay = (float)scriptdelay * 0.001;
-    if (delay < 0.000001)
-    {
-        [mJSServerko performSelector:@selector(parse:) withObject:file];
-        return;
-    }
-    
     [mJSServerko performSelector:@selector(parse:) withObject:file afterDelay:delay];
     
 	
@@ -447,6 +437,9 @@
 }
 
 
+-(void) get:(NSString*)url callback:(NSString*) callback
+{
+}
 
 
 @end

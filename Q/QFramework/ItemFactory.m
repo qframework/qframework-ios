@@ -115,41 +115,72 @@
     return [self createItem:type userdata:userdata item:item];
 }
 
--(GameonModel*)getFromTemplate:(NSString*)strType data:(NSString*)strData
+-(GameonModel*)getFromTemplate:(NSString*)strType data:(NSString*)strData color:(NSString*)strColor
 {
     if ( [mModels objectForKey:strData] != nil)
     {
         return [mModels objectForKey:strData];
     }
-	if ([strData isEqualToString:@"sphere"])
-		{
-			GameonModel* model = [self createFromType:GMODEL_SPHERE color:mApp.colors.white texture:mApp.textures.mTextureDefault];
-	        model.mModelTemplate = GMODEL_SPHERE;
-	        model.mIsModel = true;
-	        return model;
-			
-		}else if ([strData isEqualToString:@"cube"])
-		{
-			GameonModel* model = [self createFromType:GMODEL_CUBE color:mApp.colors.white texture:mApp.textures.mTextureDefault];
-	        model.mModelTemplate = GMODEL_CUBE;
-	        model.mIsModel = true;
-	        return model;
-			
-		}
-		
-    GameonModel* model = [[GameonModel alloc] initWithName:strType app:mApp];
-	
-    if ([strData isEqualToString:@"cylinder"])
+    
+    int textid = mApp.textures.mTextureDefault;
+
+    GLColor* color = nil;
+    if (strColor == nil)
     {
-        [model createModel:GMODEL_CYLYNDER ti:[mApp.textures get:TFT_DEFAULT]];
+        color = mApp.colors.white;
+    }else
+    {
+        color = [mApp.colors getColor:strColor ];
+    }
+    
+    float grid[3] = {1,1,1};
+    
+    NSArray* tok = [strData componentsSeparatedByString:@"."];
+    NSString* template = nil;
+    
+    if ([tok count] == 1)
+    {
+        template = strData;
+    }else
+    {
+        template = [tok objectAtIndex:0];
+        grid[0] = [[tok objectAtIndex:1] floatValue];
+        grid[1] = [[tok objectAtIndex:2] floatValue];
+        grid[2] = [[tok objectAtIndex:3] floatValue];
+    }
+    
+
+    
+    
+	if ([template isEqualToString:@"sphere"])
+    {
+        GameonModel* model = [self createFromType:GMODEL_SPHERE color:color texture:textid grid:grid];
+        model.mModelTemplate = GMODEL_SPHERE;
+        model.mIsModel = true;
+        return model;
+        
+    }else if ([template isEqualToString:@"cube"])
+    {
+        GameonModel* model = [self createFromType:GMODEL_CUBE color:color texture:textid grid:grid];
+        model.mModelTemplate = GMODEL_CUBE;
+        model.mIsModel = true;
+        return model;
+        
+    }
+		
+    GameonModel* model = [[GameonModel alloc] initWithName:template app:mApp];
+	
+    if ([template isEqualToString:@"cylinder"])
+    {
+        [model createModel:GMODEL_CYLYNDER ti:[mApp.textures get:TFT_DEFAULT] color:color grid:grid ];
         model.mModelTemplate = GMODEL_CYLYNDER;
         model.mIsModel = true;        
-    } else if ([strData isEqualToString:@"plane"])
+    } else if ([template isEqualToString:@"plane"])
     {
-        [model createPlane:(-0.5) btm:(-0.5) b:(0) r:(0.5) t:(0.5) f:(0) c:mApp.colors.white ];
+        [model createPlane:(-0.5) btm:(-0.5) b:(0) r:(0.5) t:(0.5) f:(0) c:color grid:grid ];
         model.mModelTemplate = GMODEL_CYLYNDER;
         model.mIsModel = true;
-    } else if ([strData isEqualToString:@"card52"])
+    } else if ([template isEqualToString:@"card52"])
     {
         [model createCard2:-0.5f btm:-0.5f b:0.0f r:0.5f t:0.5f f:0.0f c:mApp.colors.transparent];
         model.mModelTemplate = GMODEL_CARD52;
@@ -157,7 +188,7 @@
 		model.mForcedOwner = 32;   
         model.mHasAlpha = true;
         model.mIsModel = true;        
-    } else if ([strData isEqualToString:@"cardbela"])
+    } else if ([template isEqualToString:@"cardbela"])
     {
         [model createCard:-0.5f btm:-0.5f b:0.0f r:0.5f t:0.5f f:0.0f c:mApp.colors.transparent];
         model.mModelTemplate = GMODEL_CARD52;
@@ -165,9 +196,9 @@
 		model.mForcedOwner = 32;   
         model.mHasAlpha = true;
         model.mIsModel = true;        
-    } else if ([strData isEqualToString:@"background"])
+    } else if ([template isEqualToString:@"background"])
     {
-        [model createPlane:(-0.5) btm:(-0.5) b:(0) r:(0.5) t:(0.5) f:(0) c:mApp.colors.white ];
+        [model createPlane:(-0.5) btm:(-0.5) b:(0) r:(0.5) t:(0.5) f:(0) c:color grid:grid ];
         model.mModelTemplate = GMODEL_BACKGROUND;
         model.mHasAlpha = true;
         model.mIsModel = false;        
@@ -176,14 +207,14 @@
         [model release];
         return nil;
     }
-    
+    [model setTexture:textid];
     return model;
     
 }
 
--(void)newFromTemplate:(NSString*)strType data:(NSString*)strData 
+-(void)newFromTemplate:(NSString*)strType data:(NSString*)strData color:(NSString*)color
 {
-    GameonModel* model = [self getFromTemplate:strType data:strData];
+    GameonModel* model = [self getFromTemplate:strType data:strData color:color];
     
     if (model != nil)
     {
@@ -221,7 +252,8 @@
     [model setTextureOffset:offsetx h:offsety];
 }
 
--(void) createModel:(NSString*)strType data:(NSString*)strData {
+-(void) createModel:(NSString*)strType 
+{
     // get object
     GameonModel* model = [mModels  objectForKey:strType];
     model.mIsModel = true;
@@ -247,27 +279,27 @@
 	
 }		
 
--(GameonModel*) createFromType:(int)template color:(GLColor*)color texture:(int)texid
+-(GameonModel*) createFromType:(int)template color:(GLColor*)color texture:(int)texid grid:(float*)grid
 {
 
-    GameonModel* model = [[GameonModel alloc] initWithName:@"item" app:mApp];
-    [self addModelFromType:model template:template color:color texture:texid];
+    GameonModel* model = [[[GameonModel alloc] initWithName:@"item" app:mApp] autorelease];
+    [self addModelFromType:model template:template color:color texture:texid grid:grid];
     return model;
 }
 
--(GameonModel*) addModelFromType:(GameonModel*)model template:(int)template color:(GLColor*)color texture:(int)texid
+-(GameonModel*) addModelFromType:(GameonModel*)model template:(int)template color:(GLColor*)color texture:(int)texid grid:(float*)grid
 {
     
 	
     if (template == GMODEL_SPHERE)
     {
-        [model createModel:GMODEL_SPHERE ti:texid];
+        [model createModel:GMODEL_SPHERE ti:texid color:color grid:grid];
         model.mModelTemplate = GMODEL_SPHERE;
         model.mIsModel = true;        
 		model.mName = @"sphere";
     } else if (template == GMODEL_CUBE)
     {
-        [model createModel:GMODEL_CUBE ti:texid];
+        [model createModel:GMODEL_CUBE ti:texid color:color grid:grid];
         model.mModelTemplate = GMODEL_CUBE;
         model.mIsModel = true;        
     } else if (template == GMODEL_CARD52)
@@ -281,7 +313,7 @@
         [model setTexture:texid ];
     } else if (template == GMODEL_BACKGROUND)
     {
-        [model createPlane:-0.5f btm:-0.5f b:0.0f r:0.5f t:0.5f f:0.0f c:color];
+        [model createPlane:-0.5f btm:-0.5f b:0.0f r:0.5f t:0.5f f:0.0f c:color grid:grid];
         model.mModelTemplate = GMODEL_BACKGROUND;
 		model.mForceHalfTexturing = false;
         model.mHasAlpha = true;
@@ -314,8 +346,9 @@
 	{
 		return;
 	}
+	NSString* color = [objData valueForKey:@"color"];
 
-	[self newFromTemplate:name data:template];
+	[self newFromTemplate:name data:template color:color];
 		
 	NSString* texture = [objData valueForKey:@"texture"];
 	if (texture != nil)
@@ -329,7 +362,7 @@
 		[self setSubmodels:name data:submodels];
 	}			
 	
-	[self createModel:name data:@""];
+	[self createModel:name];
 
 }
 

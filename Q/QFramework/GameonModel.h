@@ -30,45 +30,42 @@
 
     NSMutableArray*         mRefs;
     NSMutableArray*         mVisibleRefs;    
-    GameonWorld_Location    mLoc;
     GameonWorld*            mWorld;
     int                     mSubmodels;
     int                     mModelTemplate;
-    bool    mVisible;
     bool    mHasAlpha;
     bool    mIsModel;
     NSString*               mName;
 	bool 					mActive;
 }
 
-@property (nonatomic, assign) GameonWorld_Location    mLoc;
 @property (nonatomic, assign) bool mHasAlpha;
 @property (nonatomic, assign) bool mIsModel;
 @property (nonatomic, assign) int mSubmodels;
 @property (nonatomic, assign) int mModelTemplate;
 @property (nonatomic, assign) NSString* mName;
 
-- (void) draw:(GameonWorld_Location) loc;
+- (void) draw:(int) loc;
 - (void) createPlane:(float)left btm:(float)bottom b:(float)back 
-                   r:(float)right t:(float)top f:(float)front c:(GLColor*)color;
+                   r:(float)right t:(float)top f:(float)front c:(GLColor*)color grid:(float*)grid;
 - (void) createCube:(float)left btm:(float)bottom b:(float)back 
                   r:(float)right t:(float)top f:(float)front c:(GLColor*)color;
 - (void)addref:(GameonModelRef*) ref;
 -(void) removeref:(GameonModelRef*) ref;
 - (void) createOctogon:(float)left btm:(float)bottom b:(float)back 
                      r:(float)right t:(float)top f:(float)front c:(GLColor*)color;
-- (void) createModel:(GameonModelData_Type)type left:(float)aleft bottom:(float)abottom back:(float)aback 
+- (void) createModel2:(GameonModelData_Type)type left:(float)aleft bottom:(float)abottom back:(float)aback 
                right:(float)aright top:(float)atop front:(float)afront tid:(int) textid ;
 
 
-- (void) createModel:(GameonModelData_Type)type ti:(int)textid;
+- (void) createModel:(GameonModelData_Type)type ti:(int)textid color:(GLColor*)color grid:(float*)grid;
 
 - (void) createModel:(GameonModelData_Type)type left:(float)aleft bottom:(float)abottom back:(float)aback 
                right:(float)aright top:(float)atop front:(float)afront c:(GLColor*) color;
 
 
 - (void) createPlane:(float)left btm:(float)bottom b:(float)back 
-                   r:(float)right t:(float)top f:(float)front c:(GLColor*)color;
+                   r:(float)right t:(float)top f:(float)front c:(GLColor*)color grid:(float*)grid;
 - (void) createPlane2:(float)left btm:(float)bottom b:(float)back 
                    r:(float)right t:(float)top f:(float)front c:(GLColor*)color;
 - (void) createPlane3:(float)left btm:(float)bottom b:(float)back 
@@ -104,8 +101,6 @@
 - (void) createFrame:(float)left btm:(float)bottom b:(float)back 
                    r:(float)right t:(float)top f:(float)front 
                   fw:(float)fw fh:(float)fh c:(GLColor*)color;
--(void) setVisible:(bool) visible;
--(bool) getVisible;
 
 -(GameonModelRef*) ref:(int)no;
 -(int) findRef:(GameonModelRef*)ref;
@@ -114,9 +109,10 @@
 -(void) createAnim:(NSString*)type forId:(int)refid delay:(NSString*)delay data:(NSString*) data;
 -(void)addPlane:(float*)mat colors:(int*) cols colorlen:(int)colslength uvbounds:(float*)uvb ;
 -(void)createModelFromData:(float*)inputdata length:(int)len transform:(float*)mat uvbounds:(float*) uvb;
--(GameonModelRef*)getRef:(int) count;
+-(GameonModelRef*)getRef:(int) count domain:(int)loc;
 -(GameonModel*) copyOfModel;
-
+-(void) hideDomainRefs:(int)renderId ;
+-(int) getVisibleRefs:(int)renderId ;
 
 @end
 

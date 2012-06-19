@@ -42,6 +42,7 @@
 #import "SoundFactory.h"
 #import "AnimFactory.h"
 #import "GameonWorldView.h"
+#import "RenderDomain.h"
 
 @implementation Areas
 
@@ -79,7 +80,6 @@
 	{
         mApp = app;        
         mAreas = [[NSMutableDictionary alloc] init];
-        mAreasHud = [[NSMutableDictionary alloc] init];
         mPageIds = [[NSMutableDictionary alloc] init];
         mVisibleAreas = [[NSMutableArray alloc] init];
         mModelBack = nil;
@@ -101,7 +101,6 @@
     [mVisibleAreas release];    
     [mPageIds release];    
     [mAreas release];
-    [mAreasHud release];
     [super dealloc];
 }
 
@@ -111,12 +110,6 @@
     if (area != nil)
     {
         return area;
-    }
-    
-    LayoutArea* areahud = [mAreasHud objectForKey:areaID];
-    if (areahud != nil)
-    {
-        return areahud;
     }
     
             
@@ -135,11 +128,6 @@
     {
         [mAreas removeObjectForKey:area.mID];
     }
-    if ( [mAreasHud objectForKey:area.mID] != nil)
-    {
-        [mAreasHud removeObjectForKey:area.mID];
-    }
-
     [area clear:true];    
     Areas* areap = [mPageIds objectForKey:area.mPageID];
     if (areap != nil)
@@ -372,6 +360,15 @@
     
 }
 
+-(void) areaMove:(NSString*)type data:(NSString*) strData {
+    LayoutArea* area = [self getArea:type];
+    if (area != nil) {
+        [area move:strData];
+    }
+    
+}
+
+
 -(void) setAreaBounds:(NSString*)type data:(NSString*) strData {
     LayoutArea* area = [self getArea:type];
     if (area != nil) {
@@ -446,8 +443,13 @@
     
 }
 
--(void) onCameraFit:(NSString*)type data:(NSString*) strData
+-(void) onCameraFit:(NSString*)type data:(NSString*) strData domain:(NSString*)domainid
 {
+    RenderDomain* domain = [mApp.world getDomainByName:domainid];
+    if (domain == nil)
+    {
+        return;
+    }
     
     if ( [type isEqual:@"fit"])
     {
@@ -457,15 +459,24 @@
         float eye[3] = { 0.0f,0.0f,1};
         float center[3] ={ 0.0f, 0.0f, 0.0f};
         float up[3] = { 0.0f, 1.0f, 0.0f };
-        [mApp.cs initCanvas:canvasw/2 h:canvash/2 o:0];
-        [mApp.cs snap_cam_z:eye center:center up:up];        
+        [domain.cs initCanvas:canvasw/2 h:canvash/2 o:0];
+        [domain.cs snap_cam_z:eye center:center up:up];        
         //NSLog(@"z = %f",z);
-        [mApp setScreenBounds];        
+        if ([domainid isEqualToString:@"hud"] || [domainid isEqualToString:@"world"])
+        {
+            [mApp setScreenBounds];        
+        }        
+        
     }
 }
 
--(void) onCameraSet:(NSString*)lookAt data:(NSString*) eyeStr
+-(void) onCameraSet:(NSString*)lookAt data:(NSString*) eyeStr  domain:(NSString*)domainid
 {
+    RenderDomain* domain = [mApp.world getDomainByName:domainid];
+    if (domain == nil)
+    {
+        return;
+    }    
     
     NSArray* tokens = [lookAt componentsSeparatedByString:@","]; 
     float lookat[3];
@@ -479,73 +490,33 @@
     eye[1] = [[tokens2 objectAtIndex:1] floatValue];
     eye[2] = [[tokens2 objectAtIndex:2] floatValue];        
     
-    [mApp.cs setCamera:lookat eye:eye];
-    [mApp setScreenBounds];    
+    [domain.cs setCamera:lookat eye:eye];
+    if ([domainid isEqualToString:@"hud"] || [domainid isEqualToString:@"world"])
+    {
+    
+        [mApp setScreenBounds];    
+    }
 }
 
--(void) onCameraFitHud:(NSString*)type data:(NSString*) strData
+-(void) onCameraProj:(NSString*)fov data:(NSString*) near data2:(NSString*)far  domain:(NSString*)domainid
 {
-  
-    if ( [type isEqual:@"fit"])
+    RenderDomain* domain = [mApp.world getDomainByName:domainid];
+    if (domain == nil)
     {
-        NSArray* tokens = [strData componentsSeparatedByString:@","]; 
-        float canvasw = [[tokens objectAtIndex:0] floatValue];
-        float canvash = [[tokens objectAtIndex:1] floatValue];
-        float eye[3] = { 0.0f,0.0f,1};
-        float center[3] ={ 0.0f, 0.0f, 0.0f};
-        float up[3] = { 0.0f, 1.0f, 0.0f };
-        [mApp.cs initCanvas:canvasw/2 h:canvash/2 o:0];
-        [mApp.cs snap_cam_z_hud:eye center:center up:up];        
-        //NSLog(@"z = %f",z);
+        return;
+    }
+    
+	float fovf = [fov floatValue];
+	float farf = 0;
+	float nearf = 0;
+    nearf  = [near floatValue];
+	farf = [far floatValue];
 
+    [domain setFov:fovf near:nearf far:farf];
+    if ([domainid isEqualToString:@"hud"] || [domainid isEqualToString:@"world"])
+    {    
         [mApp setScreenBounds];
     }
-}
-
--(void) onCameraSetHud:(NSString*)lookAt data:(NSString*) eyeStr
-{
-    
-    NSArray* tokens = [lookAt componentsSeparatedByString:@","]; 
-    float lookat[3];
-    lookat[0] = [[tokens objectAtIndex:0] floatValue];
-    lookat[1] = [[tokens objectAtIndex:1] floatValue];
-    lookat[2] = [[tokens objectAtIndex:2] floatValue];        
-    
-    NSArray* tokens2 = [eyeStr componentsSeparatedByString:@","];         
-    float eye[3];
-    eye[0] = [[tokens2 objectAtIndex:0] floatValue];
-    eye[1] = [[tokens2 objectAtIndex:1] floatValue];
-    eye[2] = [[tokens2 objectAtIndex:2] floatValue];        
-    
-    [mApp.cs setCameraHud:lookat eye:eye];
-    [mApp setScreenBounds];
-}
-
--(void) onCameraProjHud:(NSString*)fov data:(NSString*)far data2:(NSString*)near
-{
-	float fovf = [fov floatValue];
-	float farf = 0;
-	float nearf = 0;
-    nearf  = [far floatValue];
-	farf = [near floatValue];
-
-    GameonWorldView* v = mApp.view;
-    [v setFovHud:fovf near:nearf far:farf];
-	[mApp setScreenBounds];	
-}
-
-
--(void) onCameraProj:(NSString*)fov data:(NSString*) far data2:(NSString*)near
-{
-	float fovf = [fov floatValue];
-	float farf = 0;
-	float nearf = 0;
-    nearf  = [far floatValue];
-	farf = [near floatValue];
-
-    GameonWorldView* v = mApp.view;
-    [v setFov:fovf near:nearf far:farf];
-	[mApp setScreenBounds];
 }
 
 
@@ -622,23 +593,14 @@
             [self animScreen:resptype data:respdata];
             break;            
         case 2500:
-            [self onCameraFit:resptype data:respdata];
+            [self onCameraFit:resptype data:respdata domain:respdata2];
             break;
         case 2501:
-            [self onCameraSet:resptype data:respdata];
+            [self onCameraSet:resptype data:respdata domain:respdata2];
             break;            
         case 2502:
-            [self onCameraProj:resptype data:respdata data2:respdata2];
+            [self onCameraProj:resptype data:respdata data2:respdata2 domain:respdata3];
             break;			
-        case 2510:
-            [self onCameraFitHud:resptype data:respdata];
-            break;
-        case 2511:
-            [self onCameraSetHud:resptype data:respdata];
-            break;            
-        case 2512:
-            [self onCameraProjHud:resptype data:respdata data2:respdata2];
-            break;            
         case 3001:
             [self onAreaDelete:resptype data:respdata];
             break;				                
@@ -683,6 +645,9 @@
         case 3190:	// area new state
             [self setAreaLocation:resptype data:respdata];
             break;            
+		case 3196:	
+			[self areaMove:resptype data:respdata];
+            break;
         case 3191:	// area new state
             [self setAreaScale:resptype data:respdata];
             break;                   
@@ -951,16 +916,7 @@
     [area createWorldModel];
 	[area updateModelsTransformation];
     
-    
-    if (area.mDisplay == GWLOC_HUD) {
-        if ([mAreasHud objectForKey:area.mID] != nil)
-        {
-            return area;
-        }
-        [mAreasHud setObject:area forKey:area.mID];
-    } else {
-        [mAreas setObject:area forKey:area.mID];
-    }
+    [mAreas setObject:area forKey:area.mID];
     
     
     
@@ -1066,7 +1022,7 @@
             return;
         }
         
-		startAnim = [[GameonModelRef alloc] initWithParent:nil];
+		startAnim = [[GameonModelRef alloc] initWithParent:nil andDomain:arearemove.mDisplay];
         [startAnim copy:item.mModelRef];
 		[startAnim copyMat:item.mModelRef];
         [arearemove setNoFigure:indexFrom];
@@ -1094,11 +1050,17 @@
 	[startAnim release];
 }
 
--(AreaIndexPair*)findNearest:(float*)vec vecHud:(float*)vecHud findClick:(bool)click
+-(AreaIndexPair*)findNearest:(float)x y:(float)y findClick:(bool)click
 {
     AreaIndexPair* nearest = nil;    	
     float mindist = 1e7;
 
+    float rayVec[3];
+    float* eye;
+    int lastDomain = -1;
+    //mCS.screen2spaceVec(x , y, rayVec);
+    
+    
     // find first if HUD is clicked
     for (int a=[mVisibleAreas count]-1; a >=0 ; a--)
     {
@@ -1121,11 +1083,26 @@
 			}
 		}
 		
-        if (ahud.mState != LAS_VISIBLE || ahud.mDisplay != GWLOC_HUD)            
+        if (ahud.mState != LAS_VISIBLE)            
         {
             continue;
         }
-        AreaIndexPair* pair = [ahud fieldClicked:[mApp.cs eyeHud] vec:vecHud];
+        
+        if (lastDomain != ahud.mDisplay)
+        {
+            RenderDomain* domain = [mApp.world getDomain:ahud.mDisplay];
+            if (domain == nil || domain.mVisible == false)
+            {
+                continue;
+            }
+            lastDomain = ahud.mDisplay;
+            [domain.mCS screen2spaceVec:x y:y vec:rayVec];
+            eye = [domain.mCS eye];
+        }
+
+        
+        
+        AreaIndexPair* pair = [ahud fieldClicked:eye vec:rayVec];
         if (pair != nil && pair.mDist <= mindist)
         {
 			[nearest release];
@@ -1135,66 +1112,18 @@
         }
     }
 
-    if (mindist != 1e7){
-        return nearest;
-    }
-    
-    [nearest release];
-    nearest = nil;
-    
-    for (int a=[mVisibleAreas count]-1; a >=0 ; a--)
-    {
-        LayoutArea* area = [mVisibleAreas objectAtIndex:a];
-		if (area.mActiveItems == 0)
-		{
-			continue;
-		}
-		
-		if (click)
-		{
-			if ( area.mOnclick == nil || [area.mOnclick length] == 0 )
-				continue;
-		}else
-		{
-			if (!area.mHasScrollV && !area.mHasScrollH)
-			{
-				if ( (area.mOnFocusGain== nil || [area.mOnFocusGain length] == 0) &&  
-					(area.mOnFocusLost== nil || [area.mOnFocusLost length] == 0))
-					continue;
-			}
-		}
-		
-        if (area.mState != LAS_VISIBLE || area.mDisplay == GWLOC_HUD)
-        {
-            continue;
-        }
-		
-        AreaIndexPair* pair = [area fieldClicked:[mApp.cs eye] vec:vec];
-        if (pair != nil && pair.mDist <= mindist)
-        {
-			[nearest release];
-			nearest = pair;
-			mindist = pair.mDist;
-
-        }
-    }
-    
-    if (mindist != 1e7){
-        return nearest;
-    }
-
-    return nil;
+    return nearest;
 }
 
 
--(AreaIndexPair*)onDragNearest:(float*)vec vecHud:(float*)vecHud
+-(AreaIndexPair*)onDragNearest:(float)x y:(float)y
 {
-	return [self findNearest:vec vecHud:vecHud findClick:false];
+	return [self findNearest:x y:y findClick:false];
 }
 
--(AreaIndexPair*)onClickNearest:(float*)vec vecHud:(float*)vecHud
+-(AreaIndexPair*)onClickNearest:(float)x y:(float)y
 {
-	return [self findNearest:vec vecHud:vecHud findClick:true];
+	return [self findNearest:x y:y findClick:true];
 }
 
 
@@ -1212,7 +1141,22 @@
     {
         if ( [mVisibleAreas indexOfObject:area] == NSNotFound)
         {
-            [mVisibleAreas addObject:area];
+         	bool added = false;
+            for (int a=0; a< [mVisibleAreas count]; a++)
+            {
+                LayoutArea* old = [mVisibleAreas objectAtIndex:a];
+                if (old.mDisplay > area.mDisplay)
+                {
+                    [mVisibleAreas insertObject:area atIndex:a];
+                    added = true;
+                    break;
+                }
+            }
+            if (!added)
+            {
+                [mVisibleAreas addObject:area];
+            }
+                        
         }
     }else if (!visible && !pagevis) //
     {
@@ -1331,7 +1275,7 @@
     if (respdata != nil)
     {
         NSString* strdel = [NSString stringWithFormat:@"%d",delay];
-        NSString* strdata = [NSString stringWithFormat:@"Q.layout.hide_('%@');" ,pageid];
+        NSString* strdata = [NSString stringWithFormat:@"Q.layout.hide('%@').now();" ,pageid];
         [mApp sendExec:strdel script:strdata];        
     }
 
@@ -1379,7 +1323,7 @@
 	}
 	[mPageIds removeObjectForKey:pageid];
     [areas release];
-    NSLog(@"size %d %d " , [mAreas count] , [mAreasHud count]);
+//    NSLog(@"size %d %d " , [mAreas count] , [mAreasHud count]);
 }
 
 @end

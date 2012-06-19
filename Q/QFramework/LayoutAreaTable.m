@@ -187,12 +187,13 @@
 
 -(bool)getScrollCoords:(int)col ind:(int)ind field:(LayoutField*)f
 {
-	float div = (float)1/(float)(mSizeW-1);
+	float div = (float)1/(float)(mSizeW);
 	float p = (float)ind * div;
 	
 	float rowsize = (mSize)/ (float)(mSizeH);
 	//float max = div * rowsize;
 	p-= (mScrollers[0]+0.5f) * div * rowsize;
+    p += div/2;
 	float pmin = (p-div/2);
 	float pmax = (p+div/2);
 	
@@ -289,16 +290,16 @@
 		}
 		
 		float div = (float)mSizeW / mSize;
-		GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:nil];
+		GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:nil andDomain:mDisplay];
 		ref.mLoc = mDisplay;
 		float scrollpos = mScrollers[0] * div * 2; // (mScrollers[2]-mScrollers[1]+div);		    
 		if (mSubType == LATST_LIST)
 		{
-			[model createPlane:0.43f btm:(-div/2) b:0.01f r:0.5f t:div/2  f:0.01f c:fcolor];
+			[model createPlane:0.43f btm:(-div/2) b:0.01f r:0.5f t:div/2  f:0.01f c:fcolor grid:nil];
 			[ref setPosition:0.0f y:(- scrollpos * mBounds[1]) z:0.001f];
 		}else
 		{
-			[model createPlane:-div/2 btm:0.43f b:0.01f r:div/2 t:0.5f f:0.01f c:fcolor];
+			[model createPlane:-div/2 btm:0.43f b:0.01f r:div/2 t:0.5f f:0.01f c:fcolor  grid:nil];
 			[ref setPosition:(- scrollpos * mBounds[0]) y:0.0f z:0.001f];
 			
 		}
@@ -449,7 +450,7 @@
 			}
 			field.mActive = true;
 			[field.mRef setPosition:field.mX y:field.mY z:field.mZ];
-			[field.mRef setScale:field.mW y:field.mH z:1];
+			[field.mRef setScale:field.mW*mBounds[0] y:field.mH*mBounds[1] z:1];
 			[field.mRef set];
 			[field updateLocation];
 			[field setState:LAS_VISIBLE];

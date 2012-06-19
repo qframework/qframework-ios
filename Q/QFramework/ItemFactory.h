@@ -40,16 +40,16 @@
 
 - (id)initWithApp:(GameonApp*) app;
 - (LayoutItem*)	createItem:(NSString*)data source:(LayoutItem*)item;
-- (void)newFromTemplate:(NSString*)strType data:(NSString*)strData;
+- (void)newFromTemplate:(NSString*)strType data:(NSString*)strData  color:(NSString*)color;
 - (void)setTexture:(NSString*)strType data:(NSString*)strData;
-- (void)createModel:(NSString*)strType data:(NSString*)strData;
+- (void)createModel:(NSString*)strType;
 - (void)setSubmodels:(NSString*)strType data:(NSString*)strData;
-- (GameonModel*) createFromType:(int)template color:(GLColor*)color texture:(int)texid;
+- (GameonModel*) createFromType:(int)template color:(GLColor*)color texture:(int)texid  grid:(float*)grid;
 -(void)initModels:(NSMutableDictionary*)response;
--(GameonModel*)getFromTemplate:(NSString*)strType data:(NSString*)strData;
+-(GameonModel*)getFromTemplate:(NSString*)strType data:(NSString*)strData color:(NSString*)strColor;
 -(void)addShapeFromData:(NSString*)name data:(NSString*)data transform:(NSString*)transform uvbounds:(NSString*) uvbounds;
 -(void)addShape:(NSString*)name type:(NSString*)type transform:(NSString*)transform colors:(NSString*)colors uvbounds:(NSString*)uvbounds;
 -(void)newEmpty:(NSString*) name;
-
+-(GameonModel*) addModelFromType:(GameonModel*)model template:(int)template color:(GLColor*)color texture:(int)texid grid:(float*)grid;
 
 @end

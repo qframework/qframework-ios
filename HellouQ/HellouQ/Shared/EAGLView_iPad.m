@@ -30,6 +30,13 @@
 @synthesize animating;
 @dynamic animationFrameInterval;
 
+
+static double currentTime()
+{
+    NSTimeInterval tm = [NSDate timeIntervalSinceReferenceDate];
+    return tm * 1000;
+}
+
 // You must implement this method
 + (Class)layerClass
 {
@@ -79,7 +86,8 @@
         animationFrameInterval = 2;
         displayLink = nil;
         animationTimer = nil;
-
+        mPressStart = 0;
+        
         // A system version of 3.1 or greater is required to use CADisplayLink. The NSTimer
         // class is used as fallback when it isn't available.
         NSString *reqSysVer = @"3.1";
@@ -225,15 +233,17 @@
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     // Enumerates through all touch object
+    long delta = (long)(currentTime() - mPressStart);
+    
     for (UITouch *touch in touches) {
         CGPoint	location;
         location = [touch locationInView:self];
         if ([self respondsToSelector:@selector(setContentScaleFactor:)])
         {
-            [mGameonApp performClick:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor];
+            [mGameonApp touchEnd:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor delay:delta];
             
         }else {
-            [mGameonApp performClick:location.x y:location.y];
+            [mGameonApp touchEnd:location.x y:location.y  delay:delta];
         }
         
         
@@ -250,10 +260,10 @@
         location = [touch locationInView:self];
         if ([self respondsToSelector:@selector(setContentScaleFactor:)])
         {
-            [mGameonApp mouseDragged:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor];
+            [mGameonApp mouseDragged:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor forClick:false];
             
         }else {
-            [mGameonApp mouseDragged:location.x y:location.y];
+            [mGameonApp mouseDragged:location.x y:location.y forClick:false];
         }
     }
     
@@ -261,18 +271,21 @@
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    mPressStart = currentTime();
     for (UITouch *touch in touches) {
         CGPoint	location;
         location = [touch locationInView:self];
         if ([self respondsToSelector:@selector(setContentScaleFactor:)])
         {
+            [mGameonApp touchStart:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor];            
             [mGameonApp onFocusProbe:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor];
-
+            
         }else {
+            [mGameonApp touchStart:location.x y:location.y];            
             [mGameonApp onFocusProbe:location.x y:location.y];
         }
-
-                
+        
+        
         return;
     }
     

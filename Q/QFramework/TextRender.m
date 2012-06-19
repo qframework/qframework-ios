@@ -23,13 +23,15 @@
 #import <OpenGLES/ES1/gl.h>
 #import <OpenGLES/ES1/glext.h>
 #import "TextItem.h"
+#import "RenderDomain.h"
 
 @implementation TextRender
 
--(id) init 
+-(id) initWithDomain:(RenderDomain*)domain
 {
 	if (self = [super init])
 	{
+        mWorld = domain;
         mTexts = [[NSMutableArray alloc] init] ;
 		mToDelete = [[NSMutableArray alloc] init] ;
 		mVisibleTexts = [[NSMutableArray alloc] init] ;

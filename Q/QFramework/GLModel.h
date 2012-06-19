@@ -76,5 +76,7 @@
 - (void) generate;
 -(void) setTextureOffset:(int)aw h:(int)ah ;
 -(void) forceIndexCount:(int)count;
+-(void)freeArrays;
+
 @end
 

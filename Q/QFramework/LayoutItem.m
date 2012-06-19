@@ -52,6 +52,7 @@
 
 - (void) dealloc 
 {
+    
     [mModelRefOld release];
     [mModelRef release];
     [super dealloc];  
@@ -80,13 +81,13 @@
 }
 
 
--(void) setPosition:(GameonWorld_Location)loc x:(float)x y:(float)y z:(float)z
+-(void) setPosition:(int)loc x:(float)x y:(float)y z:(float)z
                     w:(float)w h:(float)h doeffect:(bool)doeffect {
     
     bool copyref = false;
     if (mModelRef == nil) 
     {
-        mModelRef = [[GameonModelRef alloc] init];
+        mModelRef = [[GameonModelRef alloc] initWithParent:mModel andDomain:loc];
         [mModelRef setParent:mModel];
         mModelRef.mLoc = loc;
         copyref = true;

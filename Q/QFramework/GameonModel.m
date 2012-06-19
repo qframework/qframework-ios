@@ -31,12 +31,12 @@
 #import "GameonCS.h"
 #import "GameonApp.h"
 #import "GMath.h"
+#import "RenderDomain.h"
 
 @implementation GameonModel
 
 @synthesize mHasAlpha;
 @synthesize mIsModel;
-@synthesize mLoc;
 @synthesize mSubmodels;
 @synthesize mModelTemplate;
 @synthesize mName;
@@ -63,8 +63,6 @@ static float mStaticBounds[] =
 	{
         mRefs = [[NSMutableArray alloc] init] ;
 		mVisibleRefs = [[NSMutableArray alloc] init] ;
-        mLoc = GWLOC_WORLD;
-        mVisible = true;
         mSubmodels = 0;
         mModelTemplate = GMODEL_NONE;
         mHasAlpha = false;
@@ -85,7 +83,8 @@ static float mStaticBounds[] =
     [super dealloc];  
 }
 
-- (void) createModel:(GameonModelData_Type)type left:(float)aleft bottom:(float)abottom back:(float)aback 
+
+- (void) createModel2:(GameonModelData_Type)type left:(float)aleft bottom:(float)abottom back:(float)aback 
                     right:(float)aright top:(float)atop front:(float)afront tid:(int) textid 
 {
     float ratiox = aright - aleft;
@@ -152,7 +151,7 @@ static float mStaticBounds[] =
 }
 
 
-- (void) createModel:(GameonModelData_Type)type ti:(int)textid 
+- (void) createModel:(GameonModelData_Type)type ti:(int)textid color:(GLColor*)color grid:(float*)grid
 {
     
     
@@ -160,44 +159,72 @@ static float mStaticBounds[] =
     data = GameonModelData_getData(type);
     
     int len = GameonModelData_getDataLen(type);
-    GLColor* color = mApp.colors.white;
 
-    GLShape* shape = [[[GLShape alloc] initWithWorld:self] autorelease];
+    float divx = 1; 
+    float divy = 1;
+    float divz = 1;
+    float countx = 1; 
+    float county = 1;
+    float countz = 1;
     
-    for (int a=0; a< len; a+=9 ) {
-        float vx1 = (*data)[a][0];
-        float vy1 = (*data)[a][1];
-        float vz1 = (*data)[a][2];
-        
-        float tu1 = (*data)[a+2][0];
-        float tv1 = 1.0f - (*data)[a+2][1];    		
-        GLVertex* v1 = [shape addVertex:vx1 y:vy1 z:vz1 tu:tu1 tv:tv1 c:color];
-        
-        float vx2 = (*data)[a+3][0];
-        float vy2 = (*data)[a+3][1];
-        float vz2 = (*data)[a+3][2];
-        
-        float tu2 = (*data)[a+5][0];
-        float tv2 = 1.0f - (*data)[a+5][1];    		
-        
-        GLVertex* v2 = [shape addVertex:vx2 y:vy2 z:vz2 tu:tu2 tv:tv2 c:color];
-        
-        float vx3 = (*data)[a+6][0];
-        float vy3 = (*data)[a+6][1];
-        float vz3 = (*data)[a+6][2];
-        
-        float tu3 = (*data)[a+8][0];
-        float tv3 = 1.0f - (*data)[a+8][1];    		
-        
-        GLVertex* v3 = [shape addVertex:vx3 y:vy3 z:vz3 tu:tu3 tv:tv3 c:color];    		
-        
-        GLFace* fc = [[[GLFace alloc] init] autorelease] ;
-        [fc setVertex:v1 v2:v2 v3:v3];
-        [shape addFace:fc];
+    if (grid != nil)
+    {
+        divx = 1 / grid[0];
+        divy = 1 / grid[1];
+        divz = 1 / grid[2];
+        countx = grid[0]*2; 
+        county = grid[1]*2;
+        countz = grid[2]*2;
         
     }
     
-    [self addShape:shape];
+    for (float x = 1.0f; x <= countx; x+= 2)
+    {
+        for (float y = 1.0f; y <= county; y+= 2)
+        {    		
+            for (float z = 1.0f; z <= countz; z+= 2)
+            {  
+                
+                GLShape* shape = [[[GLShape alloc] initWithWorld:self] autorelease];
+                
+                for (int a=0; a< len; a+=9 ) {
+                    float vx1 = (*data)[a][0] * divx+ -0.5f + divx*x/2;
+                    float vy1 = (*data)[a][1] * divy+ -0.5f + divy*y/2;
+                    float vz1 = (*data)[a][2] * divz+ -0.5f + divz*z/2;
+                    
+                    float tu1 = (*data)[a+2][0];
+                    float tv1 = 1.0f - (*data)[a+2][1];    		
+                    GLVertex* v1 = [shape addVertex:vx1 y:vy1 z:vz1 tu:tu1 tv:tv1 c:color];
+                    
+                    float vx2 = (*data)[a+3][0] * divx+ -0.5f + divx*x/2;
+                    float vy2 = (*data)[a+3][1] * divy+ -0.5f + divy*y/2;
+                    float vz2 = (*data)[a+3][2] * divz+ -0.5f + divz*z/2;
+                    
+                    float tu2 = (*data)[a+5][0];
+                    float tv2 = 1.0f - (*data)[a+5][1];    		
+                    
+                    GLVertex* v2 = [shape addVertex:vx2 y:vy2 z:vz2 tu:tu2 tv:tv2 c:color];
+                    
+                    float vx3 = (*data)[a+6][0] * divx+ -0.5f + divx*x/2;
+                    float vy3 = (*data)[a+6][1] * divy+ -0.5f + divy*y/2;
+                    float vz3 = (*data)[a+6][2] * divz+ -0.5f + divz*z/2;
+                    
+                    float tu3 = (*data)[a+8][0];
+                    float tv3 = 1.0f - (*data)[a+8][1];    		
+                    
+                    GLVertex* v3 = [shape addVertex:vx3 y:vy3 z:vz3 tu:tu3 tv:tv3 c:color];    		
+                    
+                    GLFace* fc = [[[GLFace alloc] init] autorelease] ;
+                    [fc setVertex:v1 v2:v2 v3:v3];
+                    [shape addFace:fc];
+                    
+                }
+                [self addShape:shape];
+
+            }
+        }
+    }
+    
     mTextureID = textid;
     
 }    
@@ -328,24 +355,45 @@ static float mStaticBounds[] =
 
 
 - (void) createPlane:(float)left btm:(float)bottom b:(float)back 
-                   r:(float)right t:(float)top f:(float)front c:(GLColor*)color
+                   r:(float)right t:(float)top f:(float)front c:(GLColor*)color grid:(float*)grid
 {
     GLShape* shape = [[[GLShape alloc] initWithWorld:self] autorelease];
-
-    GLVertex* leftBottomFront = [shape addVertex:left y:bottom z:front tu:0.01f tv:0.99f c:color];
-    GLVertex* rightBottomFront = [shape addVertex:right y:bottom z:front tu:0.99f tv:0.99f c:color];
-    GLVertex* leftTopFront = [shape addVertex:left y:top z:front tu:0.01f  tv:0.01f c:color];
-    GLVertex* rightTopFront = [shape addVertex:right y:top z:front tu:0.99f tv:0.01f c:color];
-
-    GLFace* face1 = [[[GLFace alloc] init] autorelease];
-    [face1   setVertex:leftBottomFront v2:rightTopFront v3:leftTopFront];
-    [shape addFace:face1];
+  	float divx = 1; 
+    float divy = 1;
+    float divz = 1;
     
-    GLFace* face2 = [[[GLFace alloc] init] autorelease];
-    [face2   setVertex:leftBottomFront v2:rightBottomFront v3:rightTopFront];
-    [shape addFace:face2];
-  
-    [self addShape:shape];
+    if (grid != nil)
+    {
+        divx = 1 / grid[0];
+        divy = 1 / grid[1];
+        divz = 1 / grid[2];
+    }
+    
+    for (float x = -0.0f; x < 1.0f; x+= divx)
+    {
+        for (float y = -0.0f; y < 1.0f; y+= divy)
+        {    		
+            float left2 = left * divx + x;
+            float right2 = right * divx + x;
+            float top2 = top * divy + y;
+            float bottom2 = bottom * divy + y;
+
+            GLVertex* leftBottomFront = [shape addVertex:left2 y:bottom2 z:front tu:0.01f tv:0.99f c:color];
+            GLVertex* rightBottomFront = [shape addVertex:right2 y:bottom2 z:front tu:0.99f tv:0.99f c:color];
+            GLVertex* leftTopFront = [shape addVertex:left2 y:top2 z:front tu:0.01f  tv:0.01f c:color];
+            GLVertex* rightTopFront = [shape addVertex:right2 y:top2 z:front tu:0.99f tv:0.01f c:color];
+
+            GLFace* face1 = [[[GLFace alloc] init] autorelease];
+            [face1   setVertex:leftBottomFront v2:rightTopFront v3:leftTopFront];
+            [shape addFace:face1];
+            
+            GLFace* face2 = [[[GLFace alloc] init] autorelease];
+            [face2   setVertex:leftBottomFront v2:rightBottomFront v3:rightTopFront];
+            [shape addFace:face2];
+          
+            [self addShape:shape];
+        }
+    }
     
 }
 
@@ -531,10 +579,10 @@ static float mStaticBounds[] =
     
 }
 
--(void)draw:(GameonWorld_Location) loc
+-(void)draw:(int) loc
 {
 
-    if (!mEnabled || !mVisible) {
+    if (!mEnabled) {
         return;
     }    
     
@@ -691,13 +739,7 @@ static float mStaticBounds[] =
             [ref setVisible:true];
         }
     }
-    if (state == LAS_HIDDEN)
-    {
-        [self setVisible:false];
-    }else
-    {
-        [self setVisible:true];
-    }
+
 }
 
 - (void) createFrame:(float)left btm:(float)bottom b:(float)back 
@@ -715,11 +757,11 @@ static float mStaticBounds[] =
 		c = color;
 	}
 	
-	[self createPlane:left-fw/2 btm:bottom-fh/2 b:front   r:left+fw/2 t:top+fh/2 f:front c:color];
-	[self createPlane:right-fw/2 btm:bottom-fh/2 b:front  r:right+fw/2 t:top+fh/2 f:front c:color];
+	[self createPlane:left-fw/2 btm:bottom-fh/2 b:front   r:left+fw/2 t:top+fh/2 f:front c:color grid:nil];
+	[self createPlane:right-fw/2 btm:bottom-fh/2 b:front  r:right+fw/2 t:top+fh/2 f:front c:color grid:nil];
 	
-	[self createPlane:left+fw/2 btm:bottom-fh/2 b:front r:right-fw/2 t:bottom+fh/2 f:front c:color];
-	[self createPlane:left+fw/2 btm:top-fh/2 b:front r:right-fw/2 t:top+fh/2 f:front c:color];
+	[self createPlane:left+fw/2 btm:bottom-fh/2 b:front r:right-fw/2 t:bottom+fh/2 f:front c:color grid:nil];
+	[self createPlane:left+fw/2 btm:top-fh/2 b:front r:right-fw/2 t:top+fh/2 f:front c:color grid:nil];
 	
 }
 
@@ -826,22 +868,14 @@ static float mStaticBounds[] =
     [to copy:[mRefs objectAtIndex:no]];
     [from copy:to];
     
+    RenderDomain* domain = [[mApp world] getDomain:to.mLoc];
 
-	if (to.mLoc == GWLOC_WORLD)
-	{
-		w = [mApp.cs worldWidth];
-		h = [mApp.cs worldHeight];
-	
-		x = [mApp.cs worldCenterX];
-		y = [mApp.cs worldCenterY];
-	}else
-	{
-		w = [mApp.cs hudWidth];
-		h = [mApp.cs hudHeight];
-	
-		x = [mApp.cs hudCenterX];
-		y = [mApp.cs hudCenterY];
-	}
+    w = [domain.cs worldWidth];
+    h = [domain.cs worldHeight];
+
+    x = [domain.cs worldCenterX];
+    y = [domain.cs worldCenterY];
+    
 	//float z = to.mPosition[2];
 	if ([type isEqual:@"left"])
 	{
@@ -890,15 +924,20 @@ static float mStaticBounds[] =
 
 -(void) addVisibleRef:(GameonModelRef*) ref
 {
+    if (mWorld == nil)
+    {
+        return;
+    }
 	if ([ref getVisible] )
 	{
 		if ( [mVisibleRefs indexOfObject:ref] == NSNotFound )
 		{
-            if ([mVisibleRefs count] == 0)
+            [mVisibleRefs addObject:ref];
+            RenderDomain* domain = [[mApp world] getDomain:ref.mLoc];
+            if (domain != nil)
             {
-                [self setVisible:true];
+                [domain setVisible:self];
             }
-			[mVisibleRefs addObject:ref];
 		}
 
 	}
@@ -911,38 +950,16 @@ static float mStaticBounds[] =
 		if ( [mVisibleRefs indexOfObject:ref] != NSNotFound)
 		{
 			[mVisibleRefs removeObject:ref];
-            if ([mVisibleRefs count] == 0)
+            RenderDomain* domain = [[mApp world] getDomain:ref.mLoc];
+            if (domain != nil)
             {
-                [self setVisible:false];
-            }    
+                [domain remVisible:self force:false];
+            }            
 		}
 	}
 }
 
--(bool) getVisible
-{
-	return mVisible;
-}
 
--(void) setVisible:(bool) visible
-{
-	if (visible)
-	{
-		mVisible = true;
-		if (mWorld != nil)
-		{
-			[mWorld setVisible:self];
-		}
-	}
-	else
-	{
-		mVisible = false;
-		if (mWorld != nil)
-		{
-			[mWorld remVisible:self];
-		}
-	}
-}    
 
 -(GameonModelRef*) ref:(int)no
 {
@@ -1089,12 +1106,13 @@ static float mStaticBounds[] =
 
 -(GameonModel*) copyOfModel
 {
-    GameonModel* model = [[GameonModel alloc] initWithName:mName app:mApp];
+    GameonModel* model = [[[GameonModel alloc] initWithName:mName app:mApp] autorelease];
     model.mEnabled = mEnabled;
     model.mForceHalfTexturing = false;
     model.mForcedOwner = 0;
-    model.mShapeList = mShapeList;	
-    model.mVertexList = mVertexList;
+    [model freeArrays];
+    model.mShapeList = [[NSMutableArray alloc] initWithArray:mShapeList];	
+    model.mVertexList = [[NSMutableArray alloc] initWithArray:mVertexList];
     model.mVertexOffset = mVertexOffset;
     model.mTextureID = mTextureID;
     model.mIndexCount = mIndexCount;
@@ -1105,7 +1123,7 @@ static float mStaticBounds[] =
     return model;
 }
 
--(GameonModelRef*)getRef:(int) count 
+-(GameonModelRef*)getRef:(int) count domain:(int)loc
 {
     if (count < [mRefs count]) 
     {
@@ -1114,12 +1132,36 @@ static float mStaticBounds[] =
     {
         while (count >= [mRefs count])
         {
-            GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:self];
+            GameonModelRef* ref = [[[GameonModelRef alloc] initWithParent:self andDomain:loc] autorelease];
             [mRefs addObject:ref];
         }
         return [mRefs objectAtIndex:count];
     }
 }
 
+-(int) getVisibleRefs:(int)renderId 
+{
+    int count = 0;
+    for (GameonModelRef* ref in mVisibleRefs)
+    {
+        if (ref.mLoc  == renderId && ref.mVisible)
+        {
+            count ++;
+        }
+    }
+    
+    return count;
+}
+
+-(void) hideDomainRefs:(int)renderId 
+{
+    for (GameonModelRef* ref in mRefs)
+    {
+        if (ref.mLoc == renderId)
+        {
+            [self remVisibleRef:ref];
+        }
+    }
+}
 
 @end

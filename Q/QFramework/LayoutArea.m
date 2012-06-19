@@ -34,6 +34,8 @@
 #import "NSData+Base64.h"
 #import "AnimFactory.h"
 #import "AnimData.h"
+#import "RenderDomain.h"
+#import "ServerkoParse.h"
 
 @implementation LayoutArea
 
@@ -97,7 +99,7 @@
         mState = LAS_VISIBLE;
         mInitState = LAS_VISIBLE;
         mLayout = LAL_NONE;
-        mDisplay = GWLOC_WORLD;
+        mDisplay = 0;
         mItemFields = [[NSMutableArray alloc] init] ;
 
         mOnclick = nil ;
@@ -207,15 +209,12 @@
 }
 
 -(void) updateDisplay:(NSString*) strData {
-    NSString* style = strData;
-    if ([style isEqualToString:@"hud"]) {
-        mDisplay = GWLOC_HUD;
-    }else
-	{
-        mDisplay = GWLOC_WORLD;
-    	
-	}
-    
+    RenderDomain* domain = [mApp.world getDomainByName:strData];
+    if (domain != nil)
+    {
+        mDisplay = domain.mRenderId;
+    }
+        
 }
 
 -(float) getX:(int)x max:(int)max w:(float) w
@@ -326,6 +325,18 @@
 	[self updateModelsTransformation];
 }
 
+-(void) move:(NSString*) strData 
+{
+    float reldata[3] = {0,0,0};
+    
+    [ServerkoParse parseFloatArray:reldata max:3 forData:strData];
+    mLocation[0] += reldata[0];
+    mLocation[1] += reldata[1];
+    mLocation[2] += reldata[2];
+    
+	[self updateModelsTransformation];
+}
+
 -(void) updateBounds:(NSString*)strData 
 {
 	[ServerkoParse parseFloatArray:mBounds max:3 forData:strData];
@@ -404,7 +415,7 @@
 {
     NSRange loc = [val rangeOfString:@"]"];
 
-    if (loc.location > 0 && [val length] > 3)
+    if (loc.location !=  NSNotFound && [val length] > 3)
     {
         return [val substringFromIndex:loc.location+1];
     }
@@ -413,6 +424,11 @@
 
 -(LayoutAreaFieldItemType) getType:(NSString*)val  
 {
+    if ([val length] == 0)
+    {
+        return LAFIT_TEXT;        
+    }
+    
     if ([val characterAtIndex:0] != '[') {
         return LAFIT_TEXT;
     }else
@@ -685,7 +701,7 @@
     
     if (mModelBack == nil) {
         if (mColorBackground != nil) {
-			GameonModelRef* ref = [[[GameonModelRef alloc] initWithParent:nil] autorelease];
+			GameonModelRef* ref = [[[GameonModelRef alloc] initWithParent:nil andDomain:mDisplay] autorelease];
 			if (mStrColorBackground != nil)
 			{
                 NSArray* tok = [mStrColorBackground componentsSeparatedByString:@"."];
@@ -700,10 +716,10 @@
 					
                     if(mType == LAT_LAYOUT)
                     {
-                        mModelBack = [mApp.items createFromType:GMODEL_BACKIMAGE color:mColorBackground texture:text];                        
+                        mModelBack = [mApp.items createFromType:GMODEL_BACKIMAGE color:mColorBackground texture:text grid:nil];                        
                     }else
                     {
-                        mModelBack = [mApp.items createFromType:GMODEL_BACKGROUND color:mColorBackground texture:text];
+                        mModelBack = [mApp.items createFromType:GMODEL_BACKGROUND color:mColorBackground texture:text grid:nil];
                     }
 					ref.mOwner = n;
 					ref.mTransformOwner = true;
@@ -715,10 +731,10 @@
 					// create plane for background
                     if(mType == LAT_LAYOUT)
                     {
-                        mModelBack = [mApp.items createFromType:GMODEL_BACKIMAGE color:mColorBackground texture:mColorBackground2];                        
+                        mModelBack = [mApp.items createFromType:GMODEL_BACKIMAGE color:mColorBackground texture:mColorBackground2 grid:nil];                        
                     }else
                     {                    
-                        mModelBack = [mApp.items createFromType:GMODEL_BACKGROUND color:mColorBackground texture:mColorBackground2];
+                        mModelBack = [mApp.items createFromType:GMODEL_BACKGROUND color:mColorBackground texture:mColorBackground2 grid:nil];
                     }
 				}
 			
@@ -727,14 +743,14 @@
                 // create plane for background
                 if(mType == LAT_LAYOUT)
                 {
-                    mModelBack = [mApp.items createFromType:GMODEL_BACKIMAGE color:mColorBackground texture:mColorBackground2];                    
+                    mModelBack = [mApp.items createFromType:GMODEL_BACKIMAGE color:mColorBackground texture:mColorBackground2 grid:nil];                    
                 }else
                 {                
-                    mModelBack = [mApp.items createFromType:GMODEL_BACKGROUND color:mColorBackground texture:mColorBackground2];
+                    mModelBack = [mApp.items createFromType:GMODEL_BACKGROUND color:mColorBackground texture:mColorBackground2 grid:nil];
                 }
             }
 			
-            mModelBack.mLoc = mDisplay;
+            //mModelBack.mLoc = mDisplay;
             mModelBack.mEnabled = true;
             if (mColorBackground.alpha < 255)
             {
@@ -790,7 +806,6 @@
 
     mModel = [[GameonModel alloc] initWithName:self.mID app:mApp];
     GameonModel* model = mModel;
-    mModel.mLoc = mDisplay;
     for (int a=0; a< [mItemFields count]; a++ ) {
      //   for (int a=0; a< 1; a++ ) {
         LayoutField* field = [mItemFields objectAtIndex:a];
@@ -816,7 +831,7 @@
             case LFFT_NORM_FIELD:
                 if (mColorForeground != nil)
                 {
-                    [model createPlane:(x) btm:(y) b:(z + up) r:(x +w) t:(y + h) f:(z + up) c:fcolor ];    
+                    [model createPlane:(x) btm:(y) b:(z + up) r:(x +w) t:(y + h) f:(z + up) c:fcolor grid:nil];    
                 }else {
                     [model createPlane4:(x) btm:(y) b:(z + up) r:(x +w) t:(y + h) f:(z + up) c1:fcolor c2:fcolor];    
                 }
@@ -831,7 +846,7 @@
                 }
 				break;
             case LFFT_PLAYER_START:
-                    [model createPlane:(x) btm:(y) b:(z + up) r:(x +w) t:(y + h) f:(z + up) c:fcolor];
+                    [model createPlane:(x) btm:(y) b:(z + up) r:(x +w) t:(y + h) f:(z + up) c:fcolor grid:nil];
                 
                 break;				
             case LFFT_PLAYER_END:
@@ -855,7 +870,7 @@
 		[field.mRef setScale:w y:h z:1 ];
 
     }
-    GameonModelRef* ref = [[GameonModelRef alloc] init];
+    GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:nil andDomain:mDisplay];
     ref.mLoc = mDisplay;
     [ref setScale:mBounds];
     [model addref:ref];    
@@ -865,9 +880,19 @@
     {
         [mModel setTexture:mColorForeground2];
     }
-    [mApp.world add:model];
+    [mApp.world add:mModel];
     //[self updateModelState:mState];
 }
+
+-(float) distFromCenter:(float*)loc
+{
+    
+    float x = fabsf(loc[0] - mLocation[0]);
+    float y = fabsf(loc[1] - mLocation[1]);
+    float z = fabsf(loc[2] - mLocation[2]);    
+    return sqrtf( x*x+ y*y + z*z );
+}
+
 
 -(AreaIndexPair*) fieldClicked:(float*)eye vec:(float*)ray
 {
@@ -900,6 +925,11 @@
 		{
 			GameonModelRef* ref = f.mRef;
 			float dist = [ref intersectsRay:eye ray:ray loc:loc];
+            if (dist > 0 && dist < 1000)
+            {    
+                dist = [f distFromCenter:loc];
+            }
+            
 			if (dist < mindist)
 			{
 				mindist = dist;
@@ -919,6 +949,7 @@
 		pair.mLoc[0] = loc[0];
 		pair.mLoc[1] = loc[1];
 		pair.mLoc[2] = loc[2];		
+        pair.mDist = mindist;        
 		return pair;							
 	}
 
@@ -927,6 +958,11 @@
 	{
 		GameonModelRef* ref = [mModelBack ref:0];
 		float dist = [ref intersectsRay:eye ray:ray loc:loc];
+        if (dist > 0 && dist < 1000)
+        {    
+            dist = [self distFromCenter:loc];
+        }
+        
 		if (dist <= mindist)
 		{
 			mindist = dist;
@@ -937,6 +973,11 @@
 	{
 		GameonModelRef* ref = [mModel ref:0];
 		float dist = [ref intersectsRay:eye ray:ray loc:loc];
+        if (dist > 0 && dist < 1000)
+        {    
+            dist = [self distFromCenter:loc];
+        }
+        
 		if (dist <= mindist)
 		{
 			mindist = dist;
@@ -951,6 +992,7 @@
 		pair.mOnFocusLost = mOnFocusLost;
 		pair.mOnFocusGain = mOnFocusGain;
 		pair.mIndex = -1;
+        pair.mDist = mindist;
 		pair.mLoc[0] = loc[0];
 		pair.mLoc[1] = loc[1];
 		pair.mLoc[2] = loc[2];
@@ -1129,7 +1171,15 @@
 }
 
 
--(void) clear:(bool)all {
+-(void) clear:(bool)all 
+{
+    if (mPsyData != nil)
+    {
+        //mPsyData.mArea = nil;
+        mPsyData = nil;
+    }
+    
+    
     [mText release];
     mText = nil;
     for (int a = 0; a < [mItemFields count]; a++) 
@@ -1141,13 +1191,13 @@
     if (mModelBack != nil && all)
     {
         [mApp.world remove:mModelBack];
-		[mModelBack release];
+		//[mModelBack release];
 		mModelBack = nil;
     }
-    if (mModelBack != nil && all)
+    if (mModel != nil && all)
     {
         [mApp.world remove:mModel];
-		[mModel release];
+		//[mModel release];
 		mModel = nil;		
     }
 	
@@ -1435,5 +1485,13 @@
 		[field createAnim:type delay:delay data:data];
 	}
 }
+
+-(void) assignPsyData:(BodyData*)bodydata 
+{
+    // 
+    mPsyData =  bodydata;
+}
+
+
 @end
 

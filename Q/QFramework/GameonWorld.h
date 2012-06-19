@@ -22,27 +22,25 @@
 @class TextRender;
 @class GameonModel;
 @class GameonApp;
-
+@class RenderDomain;
 
 @interface GameonWorld : NSObject {
 
+    NSMutableArray* mDomains;
+        
     NSMutableArray* mModelList;
-	NSMutableArray* mVisibleModelList;
     NSMutableArray* mModelList2;    
-	NSMutableArray* mVisibleModelList2;    
     NSMutableArray* mNewModels;
-    TextRender*		mTexts;
-    TextRender*		mTextsHud;
     bool            mLocked;
     bool            mLockedDraw;
     bool            mInDraw;    
 	GameonModel* 	mSplashModel;
     GameonApp*      mApp;
-	
+	float mViewWidth;
+    float mViewHeight;
 }
 
 @property (nonatomic, readonly, getter = texts)TextRender*		mTexts;
-@property (nonatomic, readonly, getter = textshud )TextRender*		mTextsHud;
 
 
 -(void) add:(GameonModel*) model;
@@ -50,7 +48,6 @@
 
 -(void) addModels;
 -(void) draw;
--(void) drawHud;
 -(void) prepare;
 
 -(void) test;
@@ -60,8 +57,18 @@
 -(void) setAmbientLight:(float)r g:(float)g b:(float)b a:(float) a;
 -(void) getAmbientLight:(float*) ret;
 -(void) setAmbientLightGl:(float)r g:(float)g b:(float)b a:(float)a;
--(void) setVisible:(GameonModel*) model;
--(void) remVisible:(GameonModel*) model;
 - (id) initWithApp:(GameonApp*)app;
+-(RenderDomain*) getDomain:(int) id;
+-(RenderDomain*) getDomainByName:(NSString*) name;
+-(void)domainCreate:(NSString*)name domainid:(NSString*)domid bounds:(NSString*)coordsstr ;
+-(void)domainRemove:(NSString*) name;
+-(void)domainHide:(NSString*) name;
+-(void)domainShow:(NSString*) name;
+-(float) gerRelativeX:(float) x;
+-(float) gerRelativeY:(float) y;
+-(void)onSurfaceChanged:(int)width h:(int) height;
+-(void)onSurfaceCreated;
+-(RenderDomain*) addDomain:(NSString*)name domain:(int)i visible:(bool) visible;
+
 @end
 

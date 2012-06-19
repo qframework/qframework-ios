@@ -28,59 +28,39 @@
 
     int *mViewport;
     float *mLookAt;
-    float *mLookAtHud;    
     float *mProjection;
-    float *mProjectionHud;
     float *mProjectionSaved;
-    float *mProjectionHudSaved;
     float* mCameraEye;
     float* mCameraLookAt;
     
-    float* mCameraEyeHud;
-    float* mCameraLookAtHud;  
-    float* mWorldBBox;
-    float* mHudBBox;    
-    bool mHudInit;
+    float* mBBox;
     bool mSpaceInit;
 	
 	float* mUpZ;    
-	float* mUpZHud;    
+    float mScreenHeight;
+    float mScreenWidth;    
 }
 
 @property (nonatomic, readonly, getter=eye) float* mCameraEye;
-@property (nonatomic, readonly, getter=eyeHud) float* mCameraEyeHud;
 
--(void) saveViewport:(int)aw h:(int) ah;
+-(void) saveViewport:(int*)viewport w:(int)aw h:(int) ah;
 -(void) saveProjection:(float)left r:(float)right t:(float)top b:(float)bottom n:(float)near f:(float) far ;
--(void) saveProjectionHud:(float)left r:(float)right t:(float)top b:(float)bottom n:(float)near f:(float) far ;
--(void) saveLookAtHud:(float*)eye  c:(float*)center u:(float*) up;
 -(void) saveLookAt:(float*)eye  c:(float*)center u:(float*) up;
 -(void) initCanvas:(float) canvasw h:(float)canvash o:(int)orientation;
 - (void) screen2space:(float)x sy:(float)y sc:(float*) spacecoords;
-- (void) screen2spaceHud:(float)x sy:(float)y sc:(float*) spacecoords;
 - (float) snap_cam_z:(float*)eye  center:(float*)center up:(float*) up;
-- (float) snap_cam_z_hud:(float*)eye  center:(float*)center up:(float*) up;
 -(void)setCamera:(float*)lookat eye:(float*) eye;
--(void)setCameraHud:(float*)lookat eye:(float*) eye;
 -(void)applyCamera;
--(void)applyCameraHud;
 -(void)applyPerspective;
--(void)applyPerspectiveHud;
--(void) switchToHud;
--(void)getScreenBounds:(float*)world hud:(float*) hud;
+-(void)getScreenBounds:(float*)world;
 -(float)getCanvasW;
 -(float)getCanvasH;
 -(void) screen2spaceVec:(float)x y:(float)y  vec:(float*) vec;
--(void) screen2spaceVecHud:(float)x y:(float)y  vec:(float*) vec;
 
 -(float) worldWidth;
 -(float) worldHeight;
 -(float) worldCenterX;
 -(float) worldCenterY;
--(float) hudWidth;
--(float) hudHeight;
--(float) hudCenterX;
--(float) hudCenterY;
 
 @end
 

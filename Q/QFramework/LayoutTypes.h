@@ -106,13 +106,6 @@ typedef enum  {
 } LayoutFieldFieldType;
 
 
-typedef enum
-{
-    GWLOC_WORLD,
-    GWLOC_HUD
-} GameonWorld_Location;
-
-
 typedef enum  GameonModelData_Type {
     GMODEL_NONE,
     GMODEL_CUBE,

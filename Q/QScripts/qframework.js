@@ -21,41 +21,61 @@ function Camera(qapp)
 {
 	this.qapp = qapp;
 
-    this.fit = function (xsz, ysz)
+    this.fit = function (xsz, ysz , domain)
     {
-        this.qapp.appendEvent( 2500 , "fit" , xsz + "," + ysz );
+    	if (domain == undefined)
+    	{
+    		this.qapp.appendEvent( 2500 , "fit" , xsz + "," + ysz  , "world");
+    	}else
+  		{
+    		this.qapp.appendEvent( 2500 , "fit" , xsz + "," + ysz  , domain);
+   		}
         return this.qapp.serverko;
     }
 
-    this.set = function (x1, y1,z1 , x2,y2,z2)
+    this.set = function (x1, y1,z1 , x2,y2,z2, domain)
     {
-        this.qapp.appendEvent( 2501 , x1+","+y1+","+z1 , x2+","+y2+","+z2);
+    	if (domain == undefined)
+    	{
+    		this.qapp.appendEvent( 2501 , x1+","+y1+","+z1 , x2+","+y2+","+z2, "world");
+    	}else
+    	{
+    		this.qapp.appendEvent( 2501 , x1+","+y1+","+z1 , x2+","+y2+","+z2, domain);
+    	}
+    	
         return this.qapp.serverko;
     }
     
 
-    this.proj = function (fov, near, far)
+    this.proj = function (fov, near, far, domain)
     {
-        this.qapp.appendEvent( 2502 , fov , near ,far);
+    	if (domain == undefined)
+    	{
+    		this.qapp.appendEvent( 2502 , fov , near ,far, "world");
+    	}else
+    	{
+    		this.qapp.appendEvent( 2502 , fov , near ,far, domain );
+    	}
+    	
         return this.qapp.serverko;
     }
 
     this.projHud = function (fov, near, far)
     {
-        this.qapp.appendEvent( 2512 , fov , near ,far);
+        this.qapp.appendEvent( 2502 , fov , near ,far, "hud");
         return this.qapp.serverko;
     }
 
     this.fitHud = function (xsz, ysz)
     {
-        this.qapp.appendEvent( 2510 , "fit" , xsz + "," + ysz );
+        this.qapp.appendEvent( 2500 , "fit" , xsz + "," + ysz , "hud");
         return this.qapp.serverko;
     }
 
 
     this.setHud = function (x1, y1,z1 , x2,y2,z2)
     {
-        this.qapp.appendEvent( 2511 , x1+","+y1+","+z1 , x2+","+y2+","+z2);
+        this.qapp.appendEvent( 2501 , x1+","+y1+","+z1 , x2+","+y2+","+z2, "hud");
         return this.qapp.serverko;
     }
 
@@ -101,7 +121,24 @@ function Env(qapp)
         this.qapp.appendEvent( 200 , name ,value);    
         return this.qapp.serverko;
     }
-
+    
+    this.registerOnTouch =  function(callback)
+    {
+        this.qapp.appendEvent( 201 , callback);    
+        return this.qapp.serverko;    	
+    }
+    
+    this.registerOnTouchStart =  function(callback)
+    {
+        this.qapp.appendEvent( 202 , callback);    
+        return this.qapp.serverko;    	
+    }
+    
+    this.registerOnTouchEnd =  function(callback)
+    {
+        this.qapp.appendEvent( 203 , callback);    
+        return this.qapp.serverko;    	
+    }        
 }
 
 
@@ -183,7 +220,7 @@ function Util(qapp)
             delay = 1000;
         
         this.qapp.env.set('touch','off');
-        this.qapp.evals(delay,"Q.env.set_('touch','on');");        
+        this.qapp.evals(delay,"Q.env.set('touch','on').now();");        
 
     }
     
@@ -192,8 +229,8 @@ function Util(qapp)
         if (delay == undefined)
             delay = 1000;
         
-        this.qapp.env.set_('touch','off');
-        this.qapp.evals_(delay,"Q.env.set_('touch','on');");        
+        this.qapp.env.set('touch','off').now();
+        this.qapp.evals(delay,"Q.env.set('touch','on').now();").now();        
 
     } 
     
@@ -259,6 +296,7 @@ function WorldObject()
 	this.location = undefined;
 	this.bounds = undefined;
 	this.texture = undefined;
+	this.color = undefined;
 	this.state = undefined;
 }
 
@@ -359,6 +397,11 @@ function Objects(qapp)
             	this.qapp.serverko.addSeparator();           
             	this.qapp.serverko.appendTag( "texture", objs[a].texture);
             }
+            if (objs[a].color != undefined)
+            {
+            	this.qapp.serverko.addSeparator();           
+            	this.qapp.serverko.appendTag( "color", objs[a].color);
+            }            
             if (objs[a].state != undefined)
             {
             	this.qapp.serverko.addSeparator();           
@@ -383,6 +426,157 @@ function Objects(qapp)
 
     
 }
+
+
+function Box2dModel()
+{
+	this.name = undefined;
+	this.refid = undefined;
+	this.type = undefined;
+	this.template = undefined;
+}
+
+
+function Box2D(qapp)
+{
+	this.qapp = qapp;
+	this.create = function ( name , gravity, mapping)
+	{
+		this.qapp.appendEvent( 9000 , name , gravity, mapping);
+		return this.qapp.serverko;
+	}
+	
+	this.remove = function ( name )
+	{
+		this.qapp.appendEvent( 9001 , name);
+		return this.qapp.serverko;		
+	}
+	
+	
+    this.createObjects = function(worldid, objs, send)
+    {
+        // send cached layout info
+        var a;
+        
+        if (send == 1)
+        	this.qapp.serverko.startData();
+
+        this.qapp.serverko.reserveSpace();
+        this.qapp.serverko.startTag();
+        this.qapp.serverko.appendTag( "res", "box2dobjs");
+        this.qapp.serverko.addSeparator();  
+        this.qapp.serverko.appendTag( "worldid", worldid );
+        this.qapp.serverko.addSeparator();        
+        this.qapp.serverko.startTags("object");
+        
+        for (a=0; a< objs.length; a++)
+        {
+            if ( a> 0)
+            {
+                this.qapp.serverko.addSeparator();
+            }
+            this.qapp.serverko.startTag();
+            if (objs[a].name != undefined)
+            {            
+            	this.qapp.serverko.appendTag( "name", objs[a].name);
+            }
+
+            if (objs[a].type != undefined)
+            {
+            	this.qapp.serverko.addSeparator();           
+            	this.qapp.serverko.appendTag( "type", objs[a].type);
+            }
+            
+            if (objs[a].refid != undefined)
+            {
+            	this.qapp.serverko.addSeparator();           
+            	this.qapp.serverko.appendTag( "refid", objs[a].refid);
+            }
+            
+            if (objs[a].template != undefined)
+            {
+            	this.qapp.serverko.addSeparator();           
+            	this.qapp.serverko.appendTag( "template", objs[a].template);
+            }            
+            
+            if (objs[a].groupIndex != undefined)
+            {
+            	this.qapp.serverko.addSeparator();           
+            	this.qapp.serverko.appendTag( "groupIndex", objs[a].groupIndex);
+            }
+            
+            if (objs[a].friction != undefined)
+            {
+            	this.qapp.serverko.addSeparator();           
+            	this.qapp.serverko.appendTag( "friction", objs[a].friction);
+            }
+            
+            if (objs[a].density != undefined)
+            {
+            	this.qapp.serverko.addSeparator();           
+            	this.qapp.serverko.appendTag( "density", objs[a].density);
+            }
+            
+            if (objs[a].restitution != undefined)
+            {
+            	this.qapp.serverko.addSeparator();           
+            	this.qapp.serverko.appendTag( "restitution", objs[a].restitution);
+            }
+            
+            this.qapp.serverko.endTag( "object");    /// TODO without param        
+        }    
+        this.qapp.serverko.endTags( "object");    /// TODO without param
+        this.qapp.serverko.endTag();    
+
+        if (send == 1)
+        	this.qapp.serverko.sendData();       
+        
+    }
+
+    this.add = function (worldid, objs)
+    {
+        this.createObjects(worldid , objs , 0);
+        return this.qapp.serverko;
+    }
+
+    
+}
+
+
+function RenderDomains(qapp)
+{
+	this.qapp = qapp;
+	
+	this.create = function (name , renderid, coords)
+	{
+		this.qapp.serverko.appendEvent( 8000 , name, renderid, coords);
+		return this.qapp.serverko;
+	}
+
+	this.remove = function (name)
+	{
+		this.qapp.serverko.appendEvent( 8001 , name, "");
+		return this.qapp.serverko;
+	}
+	
+	this.show = function (name)
+	{
+		this.qapp.serverko.appendEvent( 8002 , name);
+		return this.qapp.serverko;
+	}
+	
+	this.hide = function (name)
+	{
+		this.qapp.serverko.appendEvent( 8003 , name);
+		return this.qapp.serverko;
+	}		
+
+	// to camera bound
+	// clear color, or background
+	// ambient light for domain (adding with world)
+	
+}
+
 
 function AnimFrame()
 {
@@ -543,6 +737,8 @@ function Scores(qapp)
 
     
 }
+
+
 function QApp()
 {
 
@@ -577,6 +773,8 @@ function QApp()
     this.anim = new Anim(this);
     this.animations = new Animations(this);
     this.scores = new Scores(this);
+    this.domains = new RenderDomains(this);
+    this.box2d = new Box2D(this);
     
     this.startUpdate = function()
     {

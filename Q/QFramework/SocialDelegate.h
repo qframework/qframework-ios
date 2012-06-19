@@ -17,5 +17,6 @@
 -(void) startGetScore:(NSString*) leaderBoard callback:(NSString*)callback;
 -(void) startSubmitScore:(NSString*)lname score:(NSString*)score message:(NSString*)message callback:(NSString*)callback;
 -(void) startShow:(NSString*) leaderBoard ;
+-(void) startSubmitAchievement:(NSString*)aname score:(NSString*)score;
 
 @end

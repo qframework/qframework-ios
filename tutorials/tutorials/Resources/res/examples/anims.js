@@ -70,25 +70,7 @@ function coords_exit(area,index)
 	Q.sendUpdate();
 }
 
-// simulate press by scaling area
-function menu_focusgain(area,index)
-{
-	/*
-	Q.startUpdate();
-	Q.layout.areaSetScale(area,'0.9,0.9');
-	Q.sendUpdate();
-	*/
-}
 
-//simulate release by scaling back area
-function menu_focuslost(area,index)
-{
-	/*
-	Q.startUpdate();
-	Q.layout.areaSetScale(area,'1.0,1.0');
-	Q.sendUpdate();
-	*/
-}
 var vals = ["-0.6,0.8,0.0" , "0.6,0.8,0.5" , "0.6,0.6,-0.5" , "-0.6,0.6,0.0"];
 var acount = 0;
 function menu_clicked(area,index)

@@ -37,7 +37,7 @@
 @synthesize mRef;
 
 -(id) initWithApp:(GameonApp*)app x:(float)ax y:(float)ay w:(float)aw h:(float)ah z:(float)az t:(NSString*)text n:(float)num o:(int)offset 
-	loc:(GameonWorld_Location)loc layout:(LayoutArea_Layout)layout colors:(GLColor**)colors
+	loc:(int)loc layout:(LayoutArea_Layout)layout colors:(GLColor**)colors
 {
 	if (self = [super init])
 	{
@@ -53,24 +53,23 @@
         mOffset = offset;
         mDirX = 1;
         mDirY = 0;        
-		mLoc = loc;
 		mLayout = layout;
 		mColors[0] = colors[0];
 		mColors[1] = colors[1];
 		mColors[2] = colors[2];
 		mColors[3] = colors[3];
-        mRef = [[GameonModelRef alloc] initWithParent:nil];
+        mRef = nil;//[[GameonModelRef alloc] initWithParent:nil];
         mRef.mLoc = loc;
         mCentered = false;
         [self setOrientation:layout];        
-		[self set:true];
+		[self set:true domain:loc];
     }
     return self;    
 }
 
 
 -(id) initWithApp:(GameonApp*)app x:(float)ax y:(float)ay w:(float)aw h:(float)ah z:(float)az t:(NSString*)text  o:(int)offset
-	loc:(GameonWorld_Location)loc layout:(LayoutArea_Layout)layout colors:(GLColor**)colors
+	loc:(int)loc layout:(LayoutArea_Layout)layout colors:(GLColor**)colors
 {
 	if (self = [super init])
 	{
@@ -86,17 +85,16 @@
         mOffset = offset;
         mDirX = 1;
         mDirY = 0;                
-		mLoc = loc;
 		mLayout = layout;
 		mColors[0] = colors[0];
 		mColors[1] = colors[1];
 		mColors[2] = colors[2];
 		mColors[3] = colors[3];
-        mRef = [[GameonModelRef alloc] initWithParent:nil];
+        //mRef = [[GameonModelRef alloc] init];
         mRef.mLoc = loc;     
         mCentered = false;    
         [self setOrientation:layout];
-		[self set:true];		
+		[self set:true domain:loc];		
     }
     return self;    
 }
@@ -108,7 +106,7 @@
     [mModel release];
     [super dealloc];  
 }
-- (bool)updateText:(NSString*) text  loc:(GameonWorld_Location)loc
+- (bool)updateText:(NSString*) text  loc:(int)loc
 {
 	bool update = false;
 	if ([mText length] != [text length] && mNum < 0)
@@ -125,8 +123,7 @@
         return false;
     }
 	mLoc = loc;
-    mRef.mLoc = loc;    
-	[self set:update];
+	[self set:update domain:loc];
 	return update;
 }
 
@@ -175,7 +172,7 @@
 }
 
 
-- (void) set:(bool) updateref
+- (void) set:(bool) updateref domain:(int)loc
 {
 	[mRef setVisible:true];
 	if (mText == nil)
@@ -187,12 +184,16 @@
 	{
 		//mModel.clear();
         [mModel release];
+        mModel = nil;
 	}
-        
+    if (mRef == nil)
+    {
+        mRef = [[GameonModelRef alloc ]init];
+    }
+    
 	float wfact = 0.48f;
 	mModel = [[GameonModel alloc] initWithName:@"letter" app:mApp];
     [mModel unsetWorld];
-	mModel.mLoc = mLoc;
 	[mModel addref:mRef];
 	
 	if (mDirX != 0)

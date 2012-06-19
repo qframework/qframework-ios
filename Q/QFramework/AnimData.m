@@ -81,6 +81,7 @@ static int		mMaxFrames = 16;
 
 -(void) dealloc 
 {
+    [mFrames release];
     [mSavedRef release];
     [mCallback release];
     [mEnd release];
@@ -915,7 +916,7 @@ static int		mMaxFrames = 16;
 -(void) saveBackup:(GameonModelRef*)backup tohide:(bool) hide
 {
 	if (mSavedRef == nil)
-		mSavedRef = [[GameonModelRef alloc]initWithParent:nil];
+		mSavedRef = [[GameonModelRef alloc]initWithParent:nil andDomain:-1];
 	
 	[mSavedRef copy:backup];
 	[mSavedRef copyMat:backup];

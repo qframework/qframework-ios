@@ -44,7 +44,7 @@
 @property (nonatomic, assign) int 	mOwner;
 @property (nonatomic, assign) int	mOwnerMax;
 
--(void) setPosition:(GameonWorld_Location)loc x:(float)x y:(float)y z:(float)z
+-(void) setPosition:(int)loc x:(float)x y:(float)y z:(float)z
                   w:(float)w h:(float)h doeffect:(bool)doeffect;
 -(bool) remove;
 -(void) setRand:(float)x y:(float)y z:(float)z rx:(float)rx ry:(float)ry rz:(float) rz;

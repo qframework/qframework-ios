@@ -80,5 +80,11 @@
 }
 
 
+
+-(GLColor*) copyColor
+{
+    GLColor* color = [[[GLColor alloc  ]initWithRGBA:red g:green b:blue a:alpha] autorelease ];
+    return color;
+}
 @end
 

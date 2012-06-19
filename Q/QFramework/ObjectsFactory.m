@@ -76,22 +76,9 @@
 	[mItems setObject:item forKey:name];
 }
 
--(void)removeModel:(NSString*)name
-{
-	LayoutItem* item = [mItems objectForKey:name];
-	if (item == nil)
-	{
-		return;
-	}	
-	GameonModel* model = item.mModel;
-	[model setVisible:false];
-	[mItems removeObjectForKey:name];
-    [item release];
-	[mApp.mWorld remove:model];
-}
 	
 
--(void)create:(NSString*)name data:(NSString*)data 
+-(void)create:(NSString*)name data:(NSString*)data color:(NSString*)color
 {
 	LayoutItem* item = [mItems objectForKey:name];
 	if (item != nil)
@@ -99,7 +86,7 @@
 		return;
 	}		
 	
-	GameonModel* model = [mApp.items getFromTemplate:name data:data];
+	GameonModel* model = [mApp.items getFromTemplate:name data:data color:color];
 	if (model != nil)
 	{
         GameonModel* modelnew = [model copyOfModel];
@@ -128,7 +115,7 @@
 	}*/
 	float coords[5] = {0,0,0,0,0};
 	[ServerkoParse parseFloatArray:coords max:5 forData:data]; 
-    GameonModelRef* ref = [model getRef:refid.refid];
+    GameonModelRef* ref = [model getRef:refid.refid domain:0];
     [ref setPosition:coords];
     [ref set];
 	
@@ -148,13 +135,13 @@
 	// TODO submodels
 	if ([model ref:0] == nil)
 	{
-		GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:model];
+		GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:model andDomain:0];
 		[model addref:ref];
 	}
 	float scale[5] = {0,0,0,0,0};
 	[ServerkoParse parseFloatArray:scale max:5 forData:data]; 
 	
-    GameonModelRef* ref = [model getRef:refid.refid];
+    GameonModelRef* ref = [model getRef:refid.refid domain:0];
     [ref setScale:scale];
     [ref set];
 }
@@ -172,7 +159,7 @@
 	// TODO submodels
 	if ([model ref:0] == nil)
 	{
-		GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:model];
+		GameonModelRef* ref = [[GameonModelRef alloc] initWithParent:model  andDomain:0];
 		[model addref:ref];
 	}
 	float rotate[3] = {0,0,0};
@@ -236,7 +223,6 @@
 	}
 	
 	[[model ref:refid.refid] setVisible:visible];
-	[model setVisible:visible];
 }
 
 -(void)remove:(NSString*)name data:(NSString*)data {
@@ -244,10 +230,12 @@
 	if (item == nil)
 	{
 		return;
-	}
-
-	//GameonModel* model = item.mModel;
-	[self removeModel:name];
+	}	
+	GameonModel* model = item.mModel;
+	[mApp.mWorld remove:model];
+	[mItems removeObjectForKey:name];
+    [item release];
+    ///[model release];
 }
 
 -(void)initObjects:(NSMutableDictionary*)response
@@ -264,13 +252,14 @@
 -(void) processObject:(NSMutableDictionary*)objData
 {
 	NSString* name = [objData valueForKey:@"name"];
-	NSString* template = [objData valueForKey:@"template"];
+	NSString* template = [objData valueForKey:@"template"];    
 	if (name == nil || template == nil)
 	{
 		return;
 	}
-
-	[self create:name data:template];
+    NSString* color= [objData valueForKey:@"color"];    
+    
+	[self create:name data:template color:color];
 	
 	NSString* location = [objData valueForKey:@"location"];
 	if (location != nil)
@@ -327,7 +316,7 @@
         return nil;
     }
     GameonModel* model = item.mModel;
-    GameonModelRef* ref = [model getRef:refid.refid];
+    GameonModelRef* ref = [model getRef:refid.refid domain:0];
     return ref;
     
 }    

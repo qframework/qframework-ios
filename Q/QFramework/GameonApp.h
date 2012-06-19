@@ -37,7 +37,7 @@
 @class SoundFactory;
 @class Settings;
 @class ObjectsFactory;
-@class GameonCS;
+@class Box2dWrapper;
 
 @interface GameonApp : NSObject{
 
@@ -72,7 +72,7 @@
     SoundFactory*		mSounds;
     Settings*			mSettings;
     ObjectsFactory*		mObjectsFact;
-    GameonCS*			mCS;
+    Box2dWrapper*       mBox2dWrapper;
     
     bool				mCameraSet;
     double 				mFrameDeltaTime;
@@ -96,8 +96,11 @@
     double mLastClickTime;
     bool mSupportOld;	
 
-	
     int mContentScale;
+    NSString* 	mOnTouchCallback;
+    NSString* 	mOnTouchEndCallback;
+    NSString* 	mOnTouchStartCallback;
+    
 }
 
 @property (nonatomic, readonly, getter=grid) LayoutGrid* mDataGrid;
@@ -111,7 +114,6 @@
 @property (nonatomic, readonly, getter=sounds) SoundFactory* mSounds;
 @property (nonatomic, readonly, getter=settings) Settings* mSettings;
 @property (nonatomic, readonly, getter=objects) ObjectsFactory*	mObjectsFact;
-@property (nonatomic, readonly, getter=cs) GameonCS* mCS;
 @property (nonatomic, readonly)	NSString*			mSplashScreen;
 @property (nonatomic, readonly) float mSplashX1;
 @property (nonatomic, readonly) float mSplashX2;
@@ -119,7 +121,6 @@
 @property (nonatomic, readonly) float mSplashY2;	
 
 
--(void) performClick:(float)x y:(float)y;
 -(void)mouseDragged:(float)x y:(float) y forClick:(bool)notimecheck;
 
 -(void) endScript;
@@ -160,5 +161,9 @@
 -(void) setInputTextSelector:(NSObject*)sel;
 -(void) setSocial:(NSObject<SocialDelegate>*)delegate;
 -(void) setContentScale:(int)scale;    
+-(void)touchStart:(int)x y:(int) y;
+-(void)touchEnd:(int)x y:(int)y delay:(long) pressdelay;
+-(void) fireTouchEvent:(int)type x:(float)x  y:(float)y delay:(long)delay;
+-(void) registerOnTouch:(NSString*)resptype  type:(int)type ;
 
 @end

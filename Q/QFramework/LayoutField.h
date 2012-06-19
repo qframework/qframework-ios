@@ -108,5 +108,6 @@
 -(void) createAnimTrans:(NSString*)movetype delay:(int)delay away:(bool)away;
 -(void) setScale;
 -(void) createAnim:(NSString*)type delay:(NSString*)delay data:(NSString*)data ;
+-(float) distFromCenter:(float*)loc;
 
 @end

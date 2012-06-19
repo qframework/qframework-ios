@@ -21,6 +21,7 @@
 #import "GMath.h"
 #import "GameonModel.h"
 #import "AnimData.h"
+#import "Box2dWrapper.h"
 
 @implementation GameonModelRef
 
@@ -37,6 +38,7 @@
 @synthesize mAreaPosition;
 @synthesize mAreaRotation;
 @synthesize mScaleAdd;
+@synthesize mVisible;
 
 static float mStaticBounds[] =  
 { 
@@ -47,7 +49,7 @@ static float mStaticBounds[] =
 };
 
 
-- (id) initWithParent:(GameonModel*)parent
+- (id) initWithParent:(GameonModel*)parent andDomain:(int)loc
 {
 	if (self = [super init])
 	{
@@ -89,7 +91,7 @@ static float mStaticBounds[] =
         mTransformOwner = false;
         mParent = parent;
         mAdded = false;
-        mLoc = GWLOC_WORLD;
+        mLoc = loc;
         mVisible = false;
 		mAnimData = nil;
 		mAnimating = false;
@@ -100,7 +102,7 @@ static float mStaticBounds[] =
 
 - (id) init
 {
-    return [self initWithParent:nil];
+    return [self initWithParent:nil andDomain:0];
 }
 
 
@@ -151,6 +153,9 @@ static float mStaticBounds[] =
     
     mTransformOwner = false;
     mOwner = 0;
+    
+    mPsyData.mRef = nil;
+    mPsyData = nil;    
 }
 
 - (void) setOwner:(int)owner max:(int) ownerMax
@@ -497,6 +502,11 @@ static float mStaticBounds[] =
 -(float*) matrix 
 {
 	return mMatrix;
+}
+
+-(void)assignPsyData:(BodyData*)bodydata
+{
+    mPsyData = bodydata;
 }
 
 

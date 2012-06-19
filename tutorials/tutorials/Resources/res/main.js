@@ -26,7 +26,10 @@ var testnames = [ "Coordinate system",
                   "Lists",
                   "Anims",
                   "Textures",
-                  "Models"];
+                  "Models",
+                  "Render Domains",
+                  "Render Domains2",
+                  "Box2d"];
 
 var testlinks = ["examples/coordinates.js",
                  "examples/worldhudsystem.js",
@@ -43,7 +46,10 @@ var testlinks = ["examples/coordinates.js",
                  "examples/lists.js",
                  "examples/anims.js",
                  "examples/textures.js",
-                 "examples/models.js"];
+                 "examples/models.js",
+                 "examples/domain.js",
+                 "examples/dyndomain.js",
+                 "examples/box2d.js"];
 
 function main_loadresources()
 {
@@ -182,7 +188,25 @@ function navigate_exit()
 	main_load();
 }
 
+//simulate press by scaling area
+function menu_focusgain(area,index)
+{
+	
+	Q.startUpdate();
+	Q.layout.areaSetScale(area,'0.9,0.9');
+	Q.sendUpdate();
+	
+}
 
+//simulate release by scaling back area
+function menu_focuslost(area,index)
+{
+	
+	Q.startUpdate();
+	Q.layout.areaSetScale(area,'1.0,1.0');
+	Q.sendUpdate();
+	
+}
 main_loadresources();
 main_load();
 

@@ -36,6 +36,8 @@
 #import "SoundFactory.h"
 #import "Settings.h"
 #import "ObjectsFactory.h"
+#import "Box2dWrapper.h"
+#import "RenderDomain.h"
 
 @implementation GameonApp
 
@@ -55,7 +57,6 @@
 @synthesize mSounds;
 @synthesize mSettings;
 @synthesize mObjectsFact;
-@synthesize mCS;
 
 #define scorelead @"com.gameon.montescores"
 //#define scorelead @"montescores"
@@ -89,7 +90,7 @@ static double currentTime()
 		mSounds = [[SoundFactory alloc] initWithApp:self];
 		mSettings = [[Settings alloc] initWithApp:self];
 		mObjectsFact = [[ObjectsFactory alloc] initWithApp:self];
-		mCS = [[GameonCS alloc] init];
+        mBox2dWrapper = [[Box2dWrapper alloc] initWithApp:self];
 	
         mResponsesQueue = [[NSMutableArray alloc] init];
         mTextEditing = false;
@@ -123,6 +124,15 @@ static double currentTime()
 -(void) dealloc 
 {
 	free( mLastDrag );
+    [mAnims release];
+    [mColors release];
+    [mItems release];
+    [mTextures release];
+    [mSounds release];
+    [mSettings release];
+    [mObjectsFact release];
+    [mBox2dWrapper release];
+    
     [mView release];
     [mDataGrid release];
     [mWorld release];
@@ -145,7 +155,7 @@ static double currentTime()
     [mScript start];
 }
 
--(void) onClick:(float*)vec vecHud:(float*)vecHud
+-(void) onClick:(float)x y:(float)y
 {
     if (mTextEditing || !mTouchEnabled)
     {
@@ -155,7 +165,7 @@ static double currentTime()
 	double delay = currentTime() - mLastClickTime;	
 
     //NSLog(@" onClick %f %f %f %f", x,y,xhud,yhud);    
-    AreaIndexPair* field = [mDataGrid onClickNearest:vec vecHud:vecHud];
+    AreaIndexPair* field = [mDataGrid onClickNearest:x y:y];
     if (field != nil && field.mOnclick != nil) {
         // send data
         NSMutableString* datastr = [[[NSMutableString alloc] initWithString:field.mOnclick] autorelease];
@@ -191,22 +201,21 @@ static double currentTime()
 
 }
 
-
--(void) performClick:(float)x y:(float)y
+-(void)touchStart:(int)x y:(int) y
 {
-    float rayVec[3];
-    float rayVecHud[3];
     if (!mTouchEnabled)
-    {
-        return;
-    }    
-    [mCS screen2spaceVec:x y:y vec:rayVec];
-    [mCS screen2spaceVecHud:x y:y vec:rayVecHud];    		
-	
-	[self onClick:rayVec vecHud:rayVecHud];
-	
-    
+        return;    	
+    [self fireTouchEvent:1 x:(float)x y:(float)y delay:0];
 }
+
+-(void)touchEnd:(int)x y:(int)y delay:(long) pressdelay
+{
+    if (!mTouchEnabled)
+        return;    	
+    [self fireTouchEvent:2 x:(float)x y:(float)y delay:pressdelay];
+    [self onClick:(float)x y:(float)y];
+}
+
 
 -(void) drawFrame
 {
@@ -247,8 +256,8 @@ static double currentTime()
 	}
 	if (!mCameraSet)
 	{
-		[mDataGrid onCameraFit:@"fit" data:@"4.0,0"];
-		[mDataGrid onCameraFitHud:@"fit" data:@"4.0,0"];
+		[mDataGrid onCameraFit:@"fit" data:@"4.0,0" domain:@"world"];
+		[mDataGrid onCameraFit:@"fit" data:@"4.0,0" domain:@"hud"];
 		mCameraSet = true;
 	}	
 	mRendering = false;
@@ -360,7 +369,10 @@ static double currentTime()
 		}else if ([type isEqualToString:@"animation"]){
 			// onlayout
 			[mAnims initAnimation:roomobj];
-		}
+		}else if ([type isEqualToString:@"box2dobjs"]){
+            // onlayout
+            [mBox2dWrapper initObjects:roomobj];
+        }
 
 //        NSString* restype = 
     }
@@ -404,10 +416,15 @@ static double currentTime()
 
 -(void)setScreenBounds
 {
-    [mCS getScreenBounds:mScreenb hud:mHudb];
+    RenderDomain* hud = [mWorld getDomainByName:@"hud" ];
+    RenderDomain* world = [mWorld getDomainByName:@"world"];
+    [hud.cs getScreenBounds:mHudb ];
+    [world.cs getScreenBounds:mScreenb ];
+
+    
     NSString* script = [NSString stringWithFormat:@"Q.layout.canvasw = %f;Q.layout.canvash = %f;    Q.layout.worldxmin = %f;Q.layout.worldxmax = %f;    Q.layout.worldymin = %f;Q.layout.worldymax = %f;Q.layout.hudxmin = %f;Q.layout.hudxmax = %f;    Q.layout.hudymin = %f;Q.layout.hudymax = %f;",
-                        [mCS getCanvasW] / mContentScale,
-                        [mCS getCanvasH] / mContentScale,
+                        [world.mCS getCanvasW] / mContentScale,
+                        [world.mCS getCanvasH] / mContentScale,
                         mScreenb[0], mScreenb[2],
                         mScreenb[5], mScreenb[3],
                         mHudb[0], mHudb[2],
@@ -467,9 +484,6 @@ static double currentTime()
 -(void)mouseDragged:(float)x y:(float) y forClick:(bool)notimecheck
  {
 	// 
-	float rayVec[3];
-	float rayVecHud[3];
-
     if (!mTouchEnabled)
     {
      return;
@@ -479,17 +493,16 @@ static double currentTime()
 		mLastDragTime += 100;
 	else
 		mLastDragTime += mFrameDeltaTime;
-	if (!notimecheck && mLastDragTime < 50)
+	if (!notimecheck && mLastDragTime < 20)
 	{
         NSLog(@" out of dragg %f " , mLastDragTime);
 		return;
 	}
+     
+    [self fireTouchEvent:0 x:(float)x y:(float)y delay:0];
 	mLastDragTime = 0;
-		
-    [mCS screen2spaceVec:x y:y vec:rayVec];
-    [mCS screen2spaceVecHud:x y:y vec:rayVecHud];
 
-    AreaIndexPair* field = [mDataGrid onDragNearest:rayVec vecHud:rayVecHud];
+    AreaIndexPair* field = [mDataGrid onDragNearest:x y:y];
 	
 	if (field != nil && mFocused != nil)
 	{
@@ -500,6 +513,7 @@ static double currentTime()
 				mLastDrag[0] = field.mLoc[0];
 				mLastDrag[1] = field.mLoc[1];
 				mLastDrag[2] = field.mLoc[2];
+                [field release];
 				return;
 			}else
 			{
@@ -525,6 +539,7 @@ static double currentTime()
 		if ([field.mArea isEqual:mFocused.mArea] && 
 			field.mIndex == mFocused.mIndex)
 		{
+            [field release];
 			return;
 		}else
 		{
@@ -539,12 +554,13 @@ static double currentTime()
         [mFocused release];
 		mFocused = nil;        		
 	}
+     
+    [mFocused release];
 	mFocused = field;
 	if (field != nil)
 	{
 		[self onFocusGain:field];
 	}
-	
 	mLastDrag[0] = 1e07f;		
 
 	
@@ -587,7 +603,7 @@ static double currentTime()
 	
 	NSMutableString* datastr = [[[NSMutableString alloc] initWithString:field.mOnFocusLost] autorelease];
 	if ([datastr hasPrefix:@"js:"])
-	{
+	{ 
 		if ([datastr hasSuffix:@";"])
 		{
 			[mScript execScript:[datastr substringFromIndex:3 ]];
@@ -616,7 +632,7 @@ static double currentTime()
 
 - (void) onSurfaceChanged:(int)width h:(int) height
 {
-	[mCS initCanvas:width h:height o:1];
+//	[mCS initCanvas:width h:height o:1];
     [mView onSurfaceChanged:width h:height];
 }
 
@@ -676,6 +692,7 @@ static double currentTime()
 
 -(void)processData
 {
+    [mBox2dWrapper doFrame:mFrameDeltaTime];    
     [mAnims process:mFrameDeltaTime];
 	[self execResponses];
     [mWorld addModels];    
@@ -685,7 +702,7 @@ static double currentTime()
 -(bool)hasData
 {
     //System.out.println("to skip " + mResponsesQueue.size() + " " + mAnims.mCount);
-    if (mDrawSPlash)
+    if (mDrawSPlash || [mBox2dWrapper isActive])
     {
         return true;
     }
@@ -737,6 +754,15 @@ static double currentTime()
 		case 200:
             [self setEnv:resptype value:respdata];
             break;
+        case 201:
+            [self registerOnTouch:resptype  type:0 ];
+            break;
+        case 202:
+            [self registerOnTouch:resptype type:1 ];
+            break;
+        case 203:
+            [self registerOnTouch:resptype type:2 ];
+            break;            
 		case 500:
             if (mSocialDelegate)
             {
@@ -764,13 +790,18 @@ static double currentTime()
             }
             
             break;            
-            
+        case 522:
+            if (mSocialDelegate)
+            {
+                [mSocialDelegate startSubmitAchievement:resptype score:respdata];
+            }
+            break;
         case 1002:
             [self onTextInput:resptype script:respdata];
             //[mApp endScript];
             break;
         case 2000:
-            [self performSelector:@selector(endScript) withObject:nil afterDelay:0.001];
+            [self performSelector:@selector(endScript) withObject:nil afterDelay:0];
             break;
         case 2600:
             [mSettings open];
@@ -800,7 +831,7 @@ static double currentTime()
             [mTextures deleteTexture:resptype];
             break;			
         case 4100:
-            [mObjectsFact create:resptype data:respdata];
+            [mObjectsFact create:resptype data:respdata color:respdata3];
             break;
         case 4110:
             [mObjectsFact place:resptype data:respdata];
@@ -830,7 +861,7 @@ static double currentTime()
 			[mSounds newSound:resptype file:respdata];
             break;
 		case 5010:
-            [mSounds playSound:resptype];
+            [mSounds playSound:respdata];
             break;			
         case 5011:
 			[mSounds setVolume:(int)[resptype intValue]];
@@ -839,13 +870,13 @@ static double currentTime()
 			[mSounds mute:(int)[respdata intValue]];
             break;            
         case 6001:
-            [mItems newFromTemplate:resptype data:respdata];
+            [mItems newFromTemplate:resptype data:respdata color:nil];
             break;
         case 6002:
             [mItems setTexture:resptype data:respdata];
             break;        	  
         case 6003:
-            [mItems createModel:resptype data:respdata];
+            [mItems createModel:resptype];
             break;        	          	  
         case 6004:
             [mItems setSubmodels:resptype data:respdata];
@@ -870,7 +901,29 @@ static double currentTime()
             break;  
         case 7003:
             [self disconnect];
-            break;    
+            break;
+        case 7005:
+            [self get:resptype callback:respdata];
+            break;
+        case 8000:
+            [mWorld domainCreate:resptype domainid:respdata bounds:respdata2];
+            break;
+        case 8001:
+            [mWorld domainRemove:resptype];
+            break;
+        case 8002:
+            [mWorld domainShow:resptype];
+            break;
+        case 8003:
+            [mWorld domainHide:resptype ];
+            break;    							
+        case 9000:
+            [mBox2dWrapper initWorld:resptype gravity:respdata mapping:respdata2];
+            break;
+        case 9001:
+            [mBox2dWrapper removeWorld:resptype];
+            break;
+            
         default:
             [mDataGrid onEvent2:response];
     }		  
@@ -920,5 +973,62 @@ static double currentTime()
 {
     mSocialDelegate = delegate;
 }
+
+-(void) get:(NSString*)uri callback:(NSString*)callback
+{
+//    mScript.get(uri, callback);
+}
+
+-(void) registerOnTouch:(NSString*)resptype  type:(int)type 
+{
+    if (type == 0)
+    {
+        [mOnTouchCallback release];
+        mOnTouchCallback = [[NSString alloc] initWithString:resptype];
+    }else
+    if (type == 1)
+    {
+        [mOnTouchStartCallback release];
+        mOnTouchStartCallback = [[NSString alloc] initWithString:resptype];        
+    }else
+    if (type == 2)
+    {
+        [mOnTouchEndCallback release];
+        mOnTouchEndCallback = [[NSString alloc] initWithString:resptype];        
+    }
+}
+
+-(void) fireTouchEvent:(int)type x:(float)x  y:(float)y delay:(long)delay
+{ 
+    // 0 touch event
+    if (type == 0 && mOnTouchCallback != nil && [mOnTouchCallback length] > 0)
+    {
+        NSString* data = [[NSString alloc] initWithFormat:@"%@(%f,%f);" , 
+                          mOnTouchCallback, [mWorld gerRelativeX:x] , [mWorld gerRelativeY:y]];
+        [mScript execScript:0 script:data];  
+        [data release];
+    }
+    
+    // 1 touch start
+    if (type == 1 && mOnTouchStartCallback != nil && [mOnTouchStartCallback length] > 0 )
+    {
+        NSString* data = [[NSString alloc] initWithFormat:@"%@(%f,%f);" , 
+                          mOnTouchStartCallback, [mWorld gerRelativeX:x] , [mWorld gerRelativeY:y]];
+        [mScript execScript:0 script:data];        	        	
+        [data release];        
+    }
+    
+    // 2 touch end + delay        
+    if (type == 2 && mOnTouchEndCallback != nil && [mOnTouchEndCallback length ] > 0)
+    {
+        NSString* data = [[NSString alloc] initWithFormat:@"%@(%f,%f);" , 
+                          mOnTouchEndCallback, [mWorld gerRelativeX:x] , [mWorld gerRelativeY:y]];
+        
+        [mScript execScript:0 script:data];        	
+        [data release];        
+    }
+}
+
+
 
 @end

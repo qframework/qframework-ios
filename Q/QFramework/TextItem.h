@@ -42,7 +42,7 @@
     bool    	mVisible;
     float       mDirX;
     float         mDirY;
-	GameonWorld_Location mLoc;
+	int         mLoc;
 	GLColor*	 mColors[4];
 	bool		mCentered;
     LayoutArea_Layout mLayout;
@@ -59,14 +59,14 @@
 @property (nonatomic, readonly , getter = ref) GameonModelRef* mRef;
 
 -(id) initWithApp:(GameonApp*)app x:(float)ax y:(float)ay w:(float)aw h:(float)ah z:(float)az t:(NSString*)text n:(float)num  o:(int)offset 
-	loc:(GameonWorld_Location)loc layout:(LayoutArea_Layout)layout colors:(GLColor**)colors;
+	loc:(int)loc layout:(LayoutArea_Layout)layout colors:(GLColor**)colors;
 -(id) initWithApp:(GameonApp*)app x:(float)ax y:(float)ay w:(float)aw h:(float)ah z:(float)az t:(NSString*)text o:(int)offset
-	loc:(GameonWorld_Location)loc layout:(LayoutArea_Layout)layout colors:(GLColor**)colors;
--(bool)updateText:(NSString*) text loc:(GameonWorld_Location)loc;
+	loc:(int)loc layout:(LayoutArea_Layout)layout colors:(GLColor**)colors;
+-(bool)updateText:(NSString*) text loc:(int)loc;
 - (void)setOrientation:(int)orientation;
 - (void)setOffset:(int)offset;
 -(void) draw:(int) no;
-- (void) set:(bool) updateref;
+- (void) set:(bool) updateref domain:(int)loc;
 -(void) setVisible:(bool) visible;
 -(void) setPosition:(float)x y:(float)y z:(float)z w:(float)w h:(float) h;
 -(int) getVal:(int) val;

@@ -36,12 +36,6 @@
     TextItem*               mFps;
     bool                    mSetRenderer;
     bool 					mLockedDraw;
-    float 					mFov;
-    float 					mNear;
-    float 					mFar;
-    float 					mFovHud;
-    float 					mNearHud;
-    float 					mFarHud;
 	
 }
 
@@ -52,9 +46,6 @@
 -(void)onSurfaceCreated;
 -(bool)drawSplash;
 -(void)lockDraw:(bool) lock;
--(void) perspective:(float)fovy aspect:(float)aspect zmin:(float)zmin zmax:(float)zmax  updateFrustrum:(bool)update;
--(void) perspectiveHud:(float)fovy aspect:(float)aspect zmin:(float)zmin zmax:(float)zmax updateFrustrum:(bool)update;
--(void) setFov:(float)fovf near:(float)nearf far:(float)farf;
--(void) setFovHud:(float)fovf near:(float)nearf far:(float)farf;
+-(void) perspective:(float)fovy aspect:(float)aspect zmin:(float)zmin zmax:(float)zmax;
 
 @end

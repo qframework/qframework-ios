@@ -49,6 +49,7 @@
     TextInput*          mTextInput;    
     
     EAGLController*     mController;
+    double              mPressStart;    
 }
 
 @property (readonly, nonatomic, getter=isAnimating) BOOL animating;

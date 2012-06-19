@@ -95,6 +95,15 @@
     [super dealloc];  
 }
 
+-(void)freeArrays
+{
+    [mVertexList release];
+    [mShapeList release] ;
+    mVertexList = nil;
+    mShapeList = nil;
+}
+
+
 - (void) addShape:(GLShape*) shape 
 {
     [mShapeList addObject:shape];

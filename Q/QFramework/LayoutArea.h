@@ -31,6 +31,7 @@
 @class AreaIndexPair;
 @class GameonApp;
 @class AnimData;
+@class BodyData;
 
 @interface LayoutArea : NSObject {
 
@@ -48,7 +49,7 @@
     LayoutAreaState                 mState;
     LayoutAreaState                 mInitState;
     LayoutArea_Layout                mLayout;
-    GameonWorld_Location            mDisplay;
+    int                             mDisplay;
     NSMutableArray*                 mItemFields;
     NSString*                       mText;
     int                             mSize;
@@ -75,12 +76,13 @@
 	AnimData*						mScollerAnim;
 	int 							mActiveItems;	
 	GameonApp*						mApp;
+    BodyData*                       mPsyData;
 }
 
 //@property (nonatomic, assign) GameonModel*    mModel;
 @property (nonatomic, readonly) GameonApp*     mApp;
 @property (nonatomic, readonly) LayoutGrid*     mParent;
-@property (nonatomic, readonly) GameonWorld_Location  mDisplay;
+@property (nonatomic, readonly) int  mDisplay;
 @property (nonatomic, assign) NSString*                           mID;
 @property (nonatomic, assign) NSString*                           mPageID;
 @property (nonatomic, readonly) LayoutAreaState                 mState;
@@ -155,5 +157,7 @@
 -(void) createCustomModel;
 -(void) setScrollers:(NSString*)data;
 -(void) anim:(NSString*)type delay:(NSString*)delay data:(NSString*)data;
+-(void) assignPsyData:(BodyData*)bodydata;
+-(void) move:(NSString*) strData ;
 
 @end

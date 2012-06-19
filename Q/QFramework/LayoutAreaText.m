@@ -36,14 +36,14 @@
 	
     if (self)
     {
+        if ([subtype hasPrefix:@"mlinew"])
+        {
+            mSubType = LATxST_MLINEW;
+        }else        
         if ([subtype hasPrefix:@"mline"])
         {
             mSubType = LATxST_MLINE;
         }else
-        if ([subtype hasPrefix:@"mlinew"])
-        {
-            mSubType = LATxST_MLINEW;
-        }else            
         if ([subtype hasPrefix:@"label"])
         {
             mSubType = LATxST_LABEL;

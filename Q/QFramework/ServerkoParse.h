@@ -78,5 +78,6 @@
 -(void)start;
 +(float*)parseFloatVector:(NSString*)data datalen:(int*)datalen;
 +(int*) parseColorVector:(NSString*)data datalen:(int*)datalen;
+-(void) get:(NSString*)url callback:(NSString*) callback;
 
 @end

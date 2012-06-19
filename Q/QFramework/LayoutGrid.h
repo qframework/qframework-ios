@@ -45,7 +45,6 @@
     
     NSMutableArray*      mVisibleAreas;
     NSMutableDictionary* mAreas;
-    NSMutableDictionary* mAreasHud;
     NSMutableDictionary* mPageIds;
     GameonModel*    mModelBack;
     NSString*       mPagePopup;
@@ -65,16 +64,15 @@
 -(void) onAreaFieldRemoveItem:(NSString*)type data:(NSString*) strData ;
 -(void) moveFigureA:(NSString*)areaFrom indexFrom:(int)indexFrom areaTo:(NSString*)areaTo
         indexTo:(int)indexTo type:(NSString*)movetype delay:(NSString*)delay path:(NSArray*)path;
--(AreaIndexPair*)onClickNearest:(float*)vec vecHud:(float*)vecHud;
--(AreaIndexPair*)onDragNearest:(float*)vec vecHud:(float*)vecHud;
+-(AreaIndexPair*)onClickNearest:(float)x y:(float)y;
+-(AreaIndexPair*)onDragNearest:(float)x y:(float)y;
 -(void) setVisibleArea:(LayoutArea*)area visible:(bool)visible;
 -(void) addToPage:(LayoutArea*)area forPage:(NSString*)pageid;
 -(void) showPage:(NSString*)pageid data:(NSString*)respdata;
 -(void) hidePage:(NSString*)pageid data:(NSString*)respdata;
 -(void) animScreen:(NSString*)resptype data:(NSString*) respdata;
 -(void) clearPage:(NSString*) pageid;
--(void) onCameraFit:(NSString*)type data:(NSString*) strData;
--(void) onCameraFitHud:(NSString*)type data:(NSString*) strData;
+-(void) onCameraFit:(NSString*)type data:(NSString*) strData domain:(NSString*)domain;
 -(LayoutArea*) getArea:(NSString*)areaID;
 
 @end

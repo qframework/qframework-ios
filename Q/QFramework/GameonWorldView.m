@@ -36,12 +36,6 @@
         mApp = app; 
         mSetRenderer = false;
 		mLockedDraw = false;
-		mFov = 45;
-		mNear = 0.1f;
-		mFar = 8.7f;
-		mFovHud = 45;
-		mNearHud = 0.1f;
-		mFarHud = 8.7f;
 		
     }
     return self;
@@ -51,89 +45,24 @@
 {
     [super dealloc];  
 }
-
--(void) performClick:(float)x y:(float)y
-{
-    float spacecoords[2];
-    float spacecoordsHud[2];
-    [mApp.cs screen2space:x sy:y sc:spacecoords];
-    [mApp.cs screen2spaceHud:x sy:y sc:spacecoordsHud];
-
-    
-    //mContext.onClick(spacecoords[0], spacecoords[1],
-    //                 spacecoordsHud[0], spacecoordsHud[1]);
-}
-
 -(void) onDrawFrame
 {
     //if (mContext.mLayoutInit == false)
     //    return;
 	if (mLockedDraw)return;
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	[self perspective:mFov aspect:(float)mWidth/(float)mHeight zmin:mNear zmax:mFar  updateFrustrum:true];
-    
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    [mApp.cs applyCamera];
-    
+    glClear(GL_COLOR_BUFFER_BIT);  
     // render 3d world
     [mWorld draw];
-    
-    
-	glClear(GL_DEPTH_BUFFER_BIT);
-	//glPopMatrix();
-    
-    glMatrixMode(GL_PROJECTION);
-	//glPopMatrix();
- 
-	glLoadIdentity();
-	[self perspectiveHud:mFovHud aspect:(float)mWidth/(float)mHeight zmin:mNearHud zmax:mFarHud updateFrustrum:true];
-	
- 	glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    [mApp.cs applyCameraHud];
-    [mWorld drawHud];
-    //glPopMatrix();
-    
-    
-    //glMatrixMode(GL_PROJECTION);
-    //glPopMatrix();
-    
-    
 }
 
--(void) perspective:(float)fovy aspect:(float)aspect zmin:(float)zmin zmax:(float) zmax  updateFrustrum:(bool)update
+-(void) perspective:(float)fovy aspect:(float)aspect zmin:(float)zmin zmax:(float) zmax
 {
     GLfloat xmin, xmax, ymin, ymax;
     ymax = zmin * tan(fovy * M_PI / 360.0);
     ymin = -ymax;
     xmin = ymin * aspect;
     xmax = ymax * aspect;
-	if (update)
-	{
-		glFrustumf(xmin, xmax, ymin, ymax, zmin, zmax);
-	}else
-	{
-		[mApp.cs saveProjection:xmin r:xmax t:ymin b:ymax n:zmin f:zmax];
-	}
-}
-
--(void) perspectiveHud:(float)fovy aspect:(float)aspect zmin:(float)zmin zmax:(float) zmax updateFrustrum:(bool)update
-{
-    GLfloat xmin, xmax, ymin, ymax;
-    ymax = zmin * tan(fovy * M_PI / 360.0);
-    ymin = -ymax;
-    xmin = ymin * aspect;
-    xmax = ymax * aspect;
-	if (update)
-	{
-		glFrustumf(xmin, xmax, ymin, ymax, zmin, zmax);
-	}else
-	{
-		[mApp.cs saveProjectionHud:xmin r:xmax t:ymin b:ymax n:zmin f:zmax];
-	}
+    glFrustumf(xmin, xmax, ymin, ymax, zmin, zmax);
 }
 
 - (void) onSurfaceChanged:(int)width h:(int) height 
@@ -142,11 +71,7 @@
     mHeight = (float)height;
     [mWorld prepare];
     glViewport(0, 0, width, height);
-    [mApp.cs saveViewport:width h:height];
-  
-	[self perspective:mFov aspect:(float)mWidth/(float)mHeight zmin:mNear zmax:mFar  updateFrustrum:false];
-	[self perspectiveHud:mFovHud aspect:(float)mWidth/(float)mHeight zmin:mNearHud zmax:mFarHud updateFrustrum:false];
-	[mApp setScreenBounds];
+    [mWorld onSurfaceChanged:width h:height];
 }
 
 -(void)onSurfaceCreated {
@@ -156,6 +81,8 @@
 	{
 		//[mWorld initSplash:mContext.mSplashScreen];	
 	}
+
+    [mWorld onSurfaceCreated];
 
     
 }
@@ -178,7 +105,7 @@
      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
      glMatrixMode(GL_PROJECTION);
      glLoadIdentity();
-     [self perspective:45.0f aspect:(GLfloat)mWidth/mHeight zmin:0.14f zmax:8.7f updateFrustrum:true];
+     [self perspective:45.0f aspect:(GLfloat)mWidth/mHeight zmin:0.14f zmax:8.7f ];
      
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();		
@@ -201,23 +128,6 @@
 }
 
 
-- (void) setFov:(float)fovf near:(float)nearf far:(float)farf 
-{
-	mFar = farf;
-	mNear = nearf;
-	mFov = fovf;
-	[self perspective:mFov aspect:(float)mWidth/(float)mHeight zmin:mNear zmax:mFar  updateFrustrum:false];
-	
-}
-
-- (void) setFovHud:(float)fovf near:(float)nearf far:(float)farf 
-{
-	mFarHud = farf;
-	mNearHud = nearf;
-	mFovHud = fovf;
-	[self perspectiveHud:mFovHud aspect:(float)mWidth/(float)mHeight zmin:mNearHud zmax:mFarHud updateFrustrum:false];
-	
-}
 
 @end
 
