@@ -54,7 +54,7 @@
     float*      mBounds;
     AnimData*	mAnimData;
     BodyData*   mPsyData;
-	
+    NSString*   mRefAlias;
 }
 
 @property (nonatomic, assign) GLfloat* mPosition;
@@ -73,6 +73,7 @@
 @property (nonatomic, assign) int	   mOwner;
 @property (nonatomic, assign) int	   mOwnerMax;
 @property (nonatomic, readonly) bool	   mVisible;
+@property (nonatomic, assign) NSString*   mRefAlias;
 
 - (void) setParent:(GameonModel*)parent;
 - (void) clear;
@@ -113,6 +114,9 @@
 -(float) intersectsRay:(float*)eye ray:(float*)ray loc:(float*)loc;
 -(void) animate:(long) deltaTime;
 -(void)assignPsyData:(BodyData*)bodydata;
+-(void)cancelAnimation;
+-(void) copyData:(GameonModelRef*) source;
+-(float) distToCenter:(float*)loc;
 
 @end
 

@@ -23,6 +23,7 @@
 // setup layout
 function setuplayout()
 {
+	var x1 = Q.layout.hudxmin;
     var x2 = Q.layout.hudxmax;    
     var y2 = Q.layout.hudymax;
 	
@@ -33,7 +34,7 @@ function setuplayout()
 	item.type = "text.button";
 	item.id = "menudomainshow";
 	item.background="FF331133";
-	item.location= (x2- 1.5) +','+(y2-0.11);
+	item.location= (x2- 1.2) +','+(y2-0.11);
 	item.bounds="2.0,0.2";
 	item.display = "hud";
 	item.text = "Show menu";
@@ -42,7 +43,20 @@ function setuplayout()
 	item.onfocusgain = "js:menu_focusgain";	
 	areas.push(item);
 	
-    
+	var item = new LayoutArea();
+	item.type = "text.button";
+	item.id = "menudomainscroll";
+	item.background="FF331133";
+	item.location= (x1+ 1.2) +','+(y2-0.11);
+	item.bounds="2.0,0.2";
+	item.display = "hud";
+	item.text = "enable Scroll";
+	item.onclick = "js:menu_scrollEnable";
+	item.onfocuslost = "js:menu_focuslost";
+	item.onfocusgain = "js:menu_focusgain";	
+	areas.push(item);
+
+	
 	// add exit area
 	var areaExit = new LayoutArea();    
 	areaExit.type = 'layout.back';
@@ -216,6 +230,28 @@ function onTouchStart(x,y)
 function onTouchEnd(x,y,delay)
 {
 	console.log( " touchEnd " + x + " "+ y + " "+ delay);
+}
+
+var scrollenable = false;
+function menu_scrollEnable()
+{
+	Q.startUpdate();
+	if (scrollenable == false)
+	{
+		scrollenable = true;
+		Q.domains.panning("menudomain","enable","true",-5,5,-5,5);
+		//Q.domains.scrolling("enablex","true",-5,5);
+		//Q.domains.scrolling("enabley","false",-5,5);
+		Q.layout.areaSetText("menudomainscroll"," Disable Scroll ");
+	}else
+	{
+		scrollenable = false;
+		Q.domains.panning("menudomain","disable");
+		Q.layout.areaSetText("menudomainscroll"," Enable Scroll ");
+	}
+	
+	Q.sendUpdate();
+	
 }
 
 

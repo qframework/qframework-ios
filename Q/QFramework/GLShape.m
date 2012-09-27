@@ -113,7 +113,8 @@
     return vertex;
 }
 
--(GLVertex*) addVertexNew:(float)ax y:(float)ay z:(float)az tu:(float)atu tv:(float)atv c:(GLColor*)color {
+-(GLVertex*) addVertexNew:(float)ax y:(float)ay z:(float)az tu:(float)atu tv:(float)atv c:(GLColor*)color
+{
     
     // doesn't exist, so create new vertex
     GLVertex* vertex = [mWorld addVertex:ax y:ay z:az tu:atu tv:atv];
@@ -124,6 +125,20 @@
     [mVertexList addObject:vertex];
     return vertex;
 }
+
+-(GLVertex*) addVertexNoIndex:(float)ax y:(float)ay z:(float)az tu:(float)atu tv:(float)atv c:(GLColor*)color
+{
+    
+    GLVertex* vertex = [mWorld addVertex:ax y:ay z:az tu:atu tv:atv];
+    vertex.red= color.red;
+    vertex.green= color.green;
+    vertex.blue= color.blue;
+    vertex.alpha= color.alpha;
+    [mVertexList addObject:vertex];
+    return vertex;
+
+}
+
 
 -(GLVertex*) addVertexColor:(float)ax y:(float)ay z:(float)az tu:(float)atu tv:(float)atv c:(int*)color
 {

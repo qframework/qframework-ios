@@ -27,6 +27,8 @@
 #import "TextureFactory.h"
 #import "GameonApp.h"
 #import "GameonCS.h"
+#import "AreaIndexPair.h"
+#import "LayoutArea.h"
 
 @implementation RenderDomain
 
@@ -66,7 +68,22 @@
         mHeightPerct = 1.0f;
         mAspect = 1.0f;
         mVisible = false;
-        mCS = [[GameonCS alloc] init];
+        mCS = [[GameonCS alloc] initWithApp:app];
+        
+        mPanX = false;
+        mPanY = false;
+        mPanCoords[0] = -1000.0f;
+        mPanCoords[1] = 1000.0f;
+        mPanCoords[2] = -1000.0f;
+        mPanCoords[3] = 1000.0f;
+        
+        mLastPanX = -1;
+        mLastPanY = -1;
+        mSpaceBottomLeft[0] = 0;
+        mSpaceBottomLeft[1] = 0;
+        mSpaceTopRight[0] = 0;
+        mSpaceTopRight[1] = 0;
+        
     }
     return self;
 }
@@ -82,7 +99,7 @@
     [super dealloc];
 }
 
--(void) draw {
+-(void) draw:(double)delay {
 
     if (!mVisible)
     {
@@ -97,7 +114,7 @@
     [self perspective:mFov aspect:(float)mWidth/(float)mHeight zmin:mNear zmax:mFar  updateFrustrum:true];
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    [mCS applyCamera];
+    [mCS applyCamera:delay];
 
     
     //NSLog(@" start draw ---------");
@@ -313,5 +330,213 @@
     
     return false;
 }
+
+-(AreaIndexPair*)onTouchModel:(float)x y:(float)y click:(bool)click noareas:(bool) noareas
+{
+    float rayVec[3];
+    float* eye;
+    
+    [mCS screen2spaceVec:x y:y vec:rayVec];
+    eye = [mCS eye];
+    
+    AreaIndexPair* data = nil;
+    int len = [mVisibleModelList count];
+    for (int a=0; a< len; a++)
+    {
+        GameonModel* model = [mVisibleModelList objectAtIndex:a];
+        if (noareas && model.mParentArea!= nil)
+        {
+            continue;
+        }
+        
+        data = [model onTouch:eye ray:rayVec domain:mRenderId doclick:click];
+        if (data != nil)
+        {
+            return data;
+        }
+    }
+    
+    len = [mVisibleModelList2 count];
+    for (int a=0; a< len; a++)
+    {
+        GameonModel* model = [mVisibleModelList2 objectAtIndex:a];
+        if (noareas && model.mParentArea!= nil)
+        {
+            continue;
+        }
+        data = [model onTouch:eye  ray:rayVec  domain:mRenderId doclick:click];
+        if (data != nil)
+        {
+            return data;
+        }
+    }
+    
+    return nil;
+}
+
+
+
+-(void)pan:(NSString*)mode scroll:(NSString*)scrollers bounds:(NSString*)coords
+{
+    if ([mode isEqualToString:@"enable"])
+    {
+        // enable x and y
+        mPanX = true;
+        mPanY = true;
+    }else if ([mode isEqualToString:@"enablex"])
+    {
+        // enable x
+        mPanX = true;
+        mPanY = false;
+    }else if ([mode isEqualToString:@"enabley"])
+    {
+        // enable y
+        mPanX = false;
+        mPanY = true;
+    }else if ([mode isEqualToString:@"disable"])
+    {
+        // disable all
+        mPanX = false;
+        mPanY = false;
+    }
+    if (coords != nil)
+    {
+        [ServerkoParse parseFloatArray:mPanCoords max:4 forData:coords];
+    }
+    
+    if (scrollers != nil && [scrollers isEqualToString:@"true"])
+    {
+        if (mPanX)
+        {
+            //mHorizontalScroller = new GameonModel("horscroll", mApp, null);
+        }
+    }
+}
+
+
+
+-(bool)onPan:(float)x y:(float) y
+{
+    
+    if (!mPanX && !mPanY)
+    {
+        return false;
+    }
+    
+    if ( x < mOffsetX || x > mOffsetX + mWidth || y < mOffsetY || y > mOffsetY + mHeight)
+    {
+        return false;
+    }
+    
+    // calculate delta
+    if (mLastPanX == -1)
+    {
+        mLastPanX = x; mLastPanY = y;
+        return true;
+    }
+    
+    float deltax = x - mLastPanX;
+    float deltay = y - mLastPanY;
+    
+    
+    float* eye = [mCS eye];
+    
+    float* lookat = [mCS lookat];
+    
+    float lasteyex = eye[0];
+    float lasteyey = eye[1];
+    float lastlookx = lookat[0];
+    float lastlooky = lookat[1];
+    
+    
+    if (mPanX)
+    {
+        eye[0] -= deltax/50.0f;
+        lookat[0] -= deltax/50.0f;
+    }
+    if (mPanY)
+    {
+        eye[1] += deltay/50.0f;
+        lookat[1] += deltay/50.0f;
+    }
+    
+    
+    [mCS setCamera:lookat eye:eye];
+    mLastPanX = x; mLastPanY = y;
+    
+    bool canreturn = false;
+    float lastrunx = eye[0];
+    float lastruny = eye[1];
+    
+    do
+    {
+        
+        lastrunx = eye[0];
+        lastruny = eye[1];
+        
+        
+        
+        [mCS screen2space:mOffsetX+mWidth sy:-mOffsetY sc:mSpaceTopRight];
+        [mCS screen2space:mOffsetX sy:-mOffsetY+mHeight sc:mSpaceBottomLeft];
+        
+        
+        canreturn = true;
+        if (mPanCoords[0] != -1000)
+        {
+            if (mPanX)
+            {
+                if ((mPanCoords[1] - mPanCoords[0]) < (mSpaceTopRight[0] - mSpaceBottomLeft[0]))
+                {
+                    eye[0] = lasteyex;
+                    lookat[0] = lastlookx;
+                    [mCS setCamera:lookat eye:eye];
+                    canreturn = true;
+                    
+                }else
+					if (mSpaceBottomLeft[0] < mPanCoords[0]+0.001 || mSpaceTopRight[0] > mPanCoords[1]-0.001)
+					{
+						eye[0] = (lasteyex + eye[0]) / 2;
+						lookat[0] = (lastlookx + lookat[0]) / 2;
+                    [mCS setCamera:lookat eye:eye];
+						canreturn = false;
+					}
+            }
+            
+            if (mPanY )
+            {
+                if ((mPanCoords[3] - mPanCoords[2]) < (mSpaceTopRight[1] - mSpaceBottomLeft[1]))
+                {
+                    eye[1] = lasteyey;
+                    lookat[1] = lastlooky;
+                    [mCS setCamera:lookat eye:eye];
+                    canreturn = true;						
+                }else
+					if (mSpaceBottomLeft[1] < mPanCoords[2]+0.001 || mSpaceTopRight[1] > mPanCoords[3]-0.001)
+					{
+						eye[1] = (lasteyey + eye[1]) / 2;
+						lookat[1] = (lastlooky + lookat[1]) / 2;
+                        [mCS setCamera:lookat eye:eye];
+						canreturn = false;
+					}
+            }
+        }
+        if (lastrunx == eye[0] && lastruny == eye[1])
+        {
+            break;
+        }
+    }while(!canreturn);
+    return true;
+}
+
+
+
+-(void) resetPan
+{
+    mLastPanX = -1;
+    mLastPanY = -1;
+    
+}	
+
+
 
 @end

@@ -25,6 +25,23 @@
 @class GLColor;
 @class GameonWorld;
 @class GameonApp;
+@class MaterialData;
+@class LayoutArea;
+@class AreaIndexPair;
+
+@interface GameonModelRefId : NSObject {
+    NSString* name;
+    NSString* alias;
+    int refid;
+}
+
+@property (nonatomic, assign) NSString* name;
+@property (nonatomic, assign) NSString* alias;
+@property (nonatomic, assign) int refid;
+
+@end
+
+
 
 @interface GameonModel : GLModel {
 
@@ -37,6 +54,10 @@
     bool    mIsModel;
     NSString*               mName;
 	bool 					mActive;
+	NSMutableArray*         mIterQueue;
+    LayoutArea*             mParentArea;
+    NSString*               mOnClick;
+    MaterialData* mCurrentMaterial;
 }
 
 @property (nonatomic, assign) bool mHasAlpha;
@@ -44,6 +65,8 @@
 @property (nonatomic, assign) int mSubmodels;
 @property (nonatomic, assign) int mModelTemplate;
 @property (nonatomic, assign) NSString* mName;
+@property (nonatomic, assign) NSString* mOnClick;
+@property (nonatomic, readonly) LayoutArea*             mParentArea;
 
 - (void) draw:(int) loc;
 - (void) createPlane:(float)left btm:(float)bottom b:(float)back 
@@ -88,7 +111,7 @@
 
 -(void) createAnimTrans:(NSString*)type delay:(int)delay away:(bool)away  no:(int) no;
 
-- (id) initWithName:(NSString*)name app:(GameonApp*)app;
+- (id) initWithName:(NSString*)name app:(GameonApp*)app parenArea:(LayoutArea*)parent;
 
 - (void) createPlaneTex:(float)left btm:(float)bottom b:(float)back r:(float)right t:(float)top f:(float)front 
                     tu1:(float)tu1 tv1:(float)tv1 tu2:(float)tu2 tv2:(float)tv2 c:(GLColor**)colors
@@ -113,6 +136,12 @@
 -(GameonModel*) copyOfModel;
 -(void) hideDomainRefs:(int)renderId ;
 -(int) getVisibleRefs:(int)renderId ;
+-(void)createModelFromData2:(const float[][3])inputdata length:(int)len transform:(float*)mat uvbounds:(float*) uvb cols:(int*)colors;
+-(GameonModelRef*) getRefById:(GameonModelRefId*)refid domain:(int) loc;
+-(void)addShapeFromString:(FloatBuffer*)vertices textv:(FloatBuffer*)textvertices data:(NSString*) data;
+-(void)useMaterial:(NSString*) substring;
+-(void) setupIter:(int) num;
+-(AreaIndexPair*)onTouch:(float*)eye ray:(float*)ray domain:(int)renderId doclick:(bool)click;
 
 @end
 

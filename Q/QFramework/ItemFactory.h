@@ -51,5 +51,6 @@
 -(void)addShape:(NSString*)name type:(NSString*)type transform:(NSString*)transform colors:(NSString*)colors uvbounds:(NSString*)uvbounds;
 -(void)newEmpty:(NSString*) name;
 -(GameonModel*) addModelFromType:(GameonModel*)model template:(int)template color:(GLColor*)color texture:(int)texid grid:(float*)grid;
+-(void) createModelFromFile:(NSString*)modelname fromFile:(NSString*) fname;
 
 @end

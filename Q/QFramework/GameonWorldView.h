@@ -41,7 +41,7 @@
 
 
 -(id) initWithWorld:(GameonWorld*)world app:(GameonApp*)app;
--(void)onDrawFrame;
+-(void) onDrawFrame:(double)delay;
 -(void)onSurfaceChanged:(int)width h:(int) height;
 -(void)onSurfaceCreated;
 -(bool)drawSplash;

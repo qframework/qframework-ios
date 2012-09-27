@@ -69,6 +69,23 @@
     return (interfaceOrientation == UIInterfaceOrientationLandscapeRight);
 }
 
+
+- (NSUInteger)supportedInterfaceOrientations
+{
+    return UIInterfaceOrientationMaskLandscapeRight;
+}
+
+-(BOOL)shouldAutorotate
+{
+    return YES;
+}
+
+- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
+{
+    return UIInterfaceOrientationLandscapeRight;
+}
+
+
 - (void)didReceiveMemoryWarning {
     // Releases the view if it doesn't have a superview.
     [super didReceiveMemoryWarning];

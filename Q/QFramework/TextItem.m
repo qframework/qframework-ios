@@ -192,7 +192,7 @@
     }
     
 	float wfact = 0.48f;
-	mModel = [[GameonModel alloc] initWithName:@"letter" app:mApp];
+	mModel = [[GameonModel alloc] initWithName:@"letter" app:mApp parenArea:nil];
     [mModel unsetWorld];
 	[mModel addref:mRef];
 	

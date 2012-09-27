@@ -120,5 +120,6 @@
 -(void)addScrollerData:(float)add delay:(int)delay min:(float)min max:(float) max;
 -(void)cancel;
 -(void)calcLinearScroller:(float) perct;
+-(void)cancelAnimation:(GameonModelRef*)ref;
 
 @end

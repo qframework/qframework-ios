@@ -126,6 +126,10 @@
 
 -(void)buildObjectAdata:(GameonModelRef*)ref atype:(AnimFactory_AnimType*)atype delay:(int)delay repeat:(int)repeat data:(NSString*)data callback:(NSString*) callback
 {
+    if ([ref animating])
+    {
+        return;
+    }
 	AnimData* adata = [ref getAnimData:mApp];
 	// fill anim data!
 	
@@ -360,7 +364,19 @@
 	{
 		return;
 	}
-
+   	if ([animid isEqualToString:@"none"])
+    {
+        [end cancelAnimation];
+        return;
+    }
+    if ([mAnimations objectForKey:animid] == nil)
+    {
+        return;
+    }
+    if ([end animating])
+    {
+        return;
+    }
 	int intdata[16];
 	int count = [ServerkoParse parseIntArray:intdata max:16 forData:delaydata];
 	
@@ -385,14 +401,17 @@
 -(void)createAnim:(GameonModelRef*)start
 		end:(GameonModelRef*)end def:(GameonModelRef*)def 
 		delay:(int)delay steps:(int)steps owner:(LayoutItem*)owner 
-		repeat:(int)repeat hide:(bool)hide 
+        repeat:(int)repeat hide:(bool)hide save:(bool)savebackup
 {
 
 	AnimData* adata = [def getAnimData:mApp];
 	AnimFactory_AnimType* atype = [mAnimations objectForKey:@"transform"];
 	[adata setDelay:delay repeat:repeat];
 	[adata setup2:atype start:start end:end];
-	[adata saveBackup:def tohide:hide];
+	if (savebackup)
+    {
+        [adata saveBackup:def tohide:hide];
+    }
 	[def activateAnim];
 	
 }

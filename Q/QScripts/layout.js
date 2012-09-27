@@ -740,7 +740,11 @@ function Models(qapp)
 		return this.qapp.serverko;						
 	}
 	
-	
+	this.newFromFile = function (name , fname)
+	{
+		this.qapp.serverko.appendEvent( 6008 , name, fname);
+		return this.qapp.serverko;		
+	}
 	
 	
     this.createModels = function(objs, send)

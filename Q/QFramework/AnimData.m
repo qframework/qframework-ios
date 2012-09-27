@@ -1020,7 +1020,7 @@ static int		mMaxFrames = 16;
 
 -(void) setCallback:(NSString*) callback
  {
-	mCallback = callback;
+	mCallback = [[NSString alloc] initWithString:callback];
 }
 
 -(void) setAnimTime:(NSString*) type 

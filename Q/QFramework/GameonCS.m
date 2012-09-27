@@ -22,7 +22,9 @@
 #import "GMath.h"
 #import <OpenGLES/ES1/gl.h>
 #import <OpenGLES/ES1/glext.h>
-
+#import "GameonApp.h"
+#import "GameonModelRef.h"
+#import "AnimFactory.h"
 
 @implementation GameonCS
 
@@ -42,11 +44,18 @@
 }
 
 
-- (id)init
+- (id)initWithApp:(GameonApp*)app
 {
     self = [super init];
     
     if (self) {
+        
+        mApp = app;
+        mCameraData = [[GameonModelRef alloc]initWithParent:nil andDomain:0];        
+        mCameraEye = mCameraData.mAreaPosition;
+        mCameraLookAt = mCameraData.mPosition;
+        mUpZ = mCameraData.mScale;
+
         
         mCanvasW = 0;
         mCanvasH = 0;
@@ -259,10 +268,16 @@
     
 }
 
--(void)applyCamera
+-(void)applyCamera:(double)delta
 {
     //glMatrixMode(GL_MODELVIEW);
     //glLoadIdentity();
+    if ([mCameraData animating])
+    {
+        [mCameraData animate:delta];
+        [self saveLookAt:mCameraEye  c:mCameraLookAt u:mUpZ];
+    }
+
     
     gluLookAt(mCameraEye[0], mCameraEye[1], mCameraEye[2], 
               mCameraLookAt[0], mCameraLookAt[1], mCameraLookAt[2],    
@@ -342,5 +357,43 @@
 {
 	return (mBBox[1] + mBBox[5]) / 2;
 }	
+
+-(void) moveCamera:(float*)lookat eye:(float*)eye delay:(double)animdelay
+{
+    if (mAnimDataStart == nil)
+    {
+        mAnimDataStart = [[GameonModelRef  alloc] initWithParent:nil andDomain:0];
+    }
+    if (mAnimDataEnd == nil)
+    {
+        mAnimDataEnd = [[GameonModelRef  alloc] initWithParent:nil andDomain:0];
+    }
+    
+    [mAnimDataStart copy:mCameraData];
+    [mAnimDataEnd copy:mCameraData];
+    [mAnimDataEnd setAreaPosition:eye];
+    [mAnimDataEnd setPosition:lookat ];
+ 
+    [mApp.anims createAnim:mAnimDataStart end:mAnimDataEnd def:mCameraData
+                     delay:animdelay steps:2 owner:nil repeat:1 hide:false save:false];
+    
+}
+
+
+-(float*)eye
+{
+    
+    return mCameraEye;
+}
+
+-(float*)lookat
+{
+    return mCameraLookAt;
+}
+
+-(float*)up
+{
+    return mUpZ;
+}
 
 @end

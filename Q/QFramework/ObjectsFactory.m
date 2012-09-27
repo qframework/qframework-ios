@@ -27,11 +27,6 @@
 #import "GameonModelRef.h"
 #import "ItemFactory.h"
 
-@implementation ObjectsFactoryRefId
-@synthesize name;
-@synthesize refid;
-@end
-
 @implementation ObjectsFactory
 
 
@@ -94,10 +89,11 @@
 		item.mModel = modelnew;
 		[self addModel:name item:item];
 	}
-}	
--(void)place:(NSString*)name data:(NSString*)data 
+}
+
+-(void)place:(NSString*)name data:(NSString*)data state:(NSString*)state
 {
-    ObjectsFactoryRefId* refid = [self refId:name];    
+    GameonModelRefId* refid = [self refId:name];    
 	LayoutItem* item = [mItems objectForKey:refid.name];
 	if (item == nil)
 	{
@@ -115,16 +111,25 @@
 	}*/
 	float coords[5] = {0,0,0,0,0};
 	[ServerkoParse parseFloatArray:coords max:5 forData:data]; 
-    GameonModelRef* ref = [model getRef:refid.refid domain:0];
+    GameonModelRef* ref = [model getRefById:refid domain:0];
     [ref setPosition:coords];
     [ref set];
 	
+    if (state != nil)
+    {
+        bool visible = false;
+        if ([state isEqualToString:@"visible"])
+        {
+            visible = true;
+        }
+        [ref setVisible:visible];
+    }
 
 }
 
 -(void)scale:(NSString*)name data:(NSString*)data 
 {
-    ObjectsFactoryRefId* refid = [self refId:name];
+    GameonModelRefId* refid = [self refId:name];
 	LayoutItem* item = [mItems objectForKey:refid.name];
 	if (item == nil)
 	{
@@ -141,14 +146,14 @@
 	float scale[5] = {0,0,0,0,0};
 	[ServerkoParse parseFloatArray:scale max:5 forData:data]; 
 	
-    GameonModelRef* ref = [model getRef:refid.refid domain:0];
+    GameonModelRef* ref = [model getRefById:refid domain:0];
     [ref setScale:scale];
     [ref set];
 }
 
 -(void)rotate:(NSString*)name data:(NSString*)data 
 {
-    ObjectsFactoryRefId* refid = [self refId:name];
+    GameonModelRefId* refid = [self refId:name];
 	LayoutItem* item = [mItems objectForKey:refid.name];
 	if (item == nil)
 	{
@@ -165,7 +170,7 @@
 	float rotate[3] = {0,0,0};
 	[ServerkoParse parseFloatArray:rotate max:3 forData:data]; 
 	
-	GameonModelRef* r = [model ref:refid.refid];
+    GameonModelRef* r = [model getRefById:refid domain:0];
 	[r setRotate:rotate];
 	[r set];
 }
@@ -175,7 +180,7 @@
 
 -(void)texture:(NSString*)name data:(NSString*)data submodel:(NSString*)submodel
 {
-    ObjectsFactoryRefId* refid = [self refId:name];
+    GameonModelRefId* refid = [self refId:name];
     
 	LayoutItem* item = [mItems objectForKey:refid.name];
 	if (item == nil)
@@ -183,7 +188,7 @@
 		return;
 	}
 	GameonModel* model = item.mModel;
-	GameonModelRef* r = [model ref:refid.refid];
+    GameonModelRef* r = [model getRefById:refid domain:0];
     
     if (data != nil && [data length] > 0)
     {        
@@ -202,7 +207,7 @@
 //TODO mutliple references with name.refid , default 0!
 -(void)state:(NSString*)name data:(NSString*)data {
     
-    ObjectsFactoryRefId* refid = [self refId:name];
+    GameonModelRefId* refid = [self refId:name];
     
 	LayoutItem* item = [mItems objectForKey:refid.name];
 	if (item == nil)
@@ -219,10 +224,10 @@
 	}
 	if ([model ref:refid.refid] == nil)
 	{
-		[self place:name data:@"0,0,0"];
+		[self place:name data:@"0,0,0" state:nil];
 	}
-	
-	[[model ref:refid.refid] setVisible:visible];
+    GameonModelRef* r = [model getRefById:refid domain:0];
+	[r setVisible:visible];
 }
 
 -(void)remove:(NSString*)name data:(NSString*)data {
@@ -264,7 +269,7 @@
 	NSString* location = [objData valueForKey:@"location"];
 	if (location != nil)
 	{
-		[self place:name data:location];
+		[self place:name data:location state:nil];
 	}
 	
 	NSString* bounds = [objData valueForKey:@"bounds"];
@@ -283,32 +288,56 @@
 	if (state != nil)
 	{
 		[self state:name data:state];
-	}			
+	}
+
+	NSString* rotate = [objData valueForKey:@"rotate"];
+	if (rotate != nil)
+	{
+		[self rotate:name data:rotate];
+	}
+
+	NSString* iter = [objData valueForKey:@"iter"];
+	if (iter != nil)
+	{
+		[self setIter:name data:iter];
+	}
+
+	NSString* onclick = [objData valueForKey:@"onclick"];
+	if (onclick != nil)
+	{
+		[self setOnClick:name data:onclick];
+	}
+
 }
 
--(ObjectsFactoryRefId*)refId:(NSString*) name
+-(GameonModelRefId*)refId:(NSString*) name
 {
-    ObjectsFactoryRefId* refdata = [[[ObjectsFactoryRefId alloc] init]autorelease];
-    
-    NSRange i = [name rangeOfString:@"."];
-    if ( i.location  != NSNotFound )
+    GameonModelRefId* refdata = [[[GameonModelRefId alloc] init]autorelease];
+
+    NSArray* tok = [name componentsSeparatedByString:@"."];
+    int count = [tok count];
+    if ( count == 2)
     {
+   		refdata.name = [tok objectAtIndex:0];
+        refdata.refid = [[tok objectAtIndex:1] intValue];
         
-        refdata.name = [name substringToIndex:i.location];
-        NSString* refid = [name substringFromIndex:i.location+1];
-        refdata.refid = [refid intValue];
-    }else
+    }else if (count == 3)
     {
-        refdata.name = name;
+   		refdata.name = [tok objectAtIndex:0];
+        refdata.refid = -1;
+   		refdata.alias = [tok objectAtIndex:2];
+    }else{
+   		refdata.name = name;
         refdata.refid = 0;
     }
+        
     return refdata;
 }
 
 
 -(GameonModelRef*) getRef:(NSString*) name
 {
-    ObjectsFactoryRefId* refid = [self refId:name];
+    GameonModelRefId* refid = [self refId:name];
     
     LayoutItem* item = [mItems objectForKey:refid.name];
     if (item == nil)
@@ -316,10 +345,37 @@
         return nil;
     }
     GameonModel* model = item.mModel;
-    GameonModelRef* ref = [model getRef:refid.refid domain:0];
+    GameonModelRef* ref = [model getRefById:refid domain:0];
     return ref;
     
 }    
+
+-(void)setIter:(NSString*)name data:(NSString*) data
+{
+    GameonModelRefId* refid = [self refId:name];
+    LayoutItem* item = [mItems objectForKey:refid.name];
+    if (item == nil)
+    {
+        return;
+    }
+    GameonModel* model = item.mModel;
+    int num = [data intValue];
+    [model setupIter:num];
+}
+
+-(void)setOnClick:(NSString*)name data:(NSString*)data
+{
+    GameonModelRefId* refid = [self refId:name];
+    LayoutItem* item = [mItems objectForKey:refid.name];
+    if (item == nil)
+    {
+        return;
+    }
+    GameonModel* model = item.mModel;
+    model.mOnClick = [[NSString alloc] initWithString:data];
+}
+
+
 
 
 @end

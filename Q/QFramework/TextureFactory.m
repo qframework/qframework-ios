@@ -18,6 +18,111 @@
 */
 
 #import "TextureFactory.h"
+#import "GameonApp.h"
+#import "ServerkoParse.h"
+#import "GLColor.h"
+#import "ColorFactory.h"
+#import "GameonApp.h"
+
+@implementation MaterialData
+
+@synthesize ambient;
+@synthesize diffuse;
+@synthesize alpha;
+@synthesize ambientMap;
+@synthesize diffuseMap;
+@synthesize ambientMapId;
+@synthesize diffuseMapId;
+@synthesize  t;
+
+
+- (id)initWithApp:(GameonApp*)app
+{
+    self = [super init];
+    
+    if (self) {
+        alpha = 1.0f;
+        t = NULL;
+        mApp = app;
+        ambientMapId = 1;
+        diffuseMapId = 1;
+    }
+    return  self;
+
+}
+
+- (void) dealloc
+{
+
+    [ambientMap release];
+    [diffuseMap release];
+    [diffuse release];
+    [ambient release];
+    if (t)
+    {
+        free(t);
+    }
+    [super dealloc];
+}
+
+-(void)setDiffuseMap:(NSString*)folder data:(NSString*)data
+{
+    diffuseMap = [[NSString alloc]initWithString:data];
+    diffuseMapId = [[mApp textures] newTexture:data file:data];
+}
+
+-(void)setAmbientMap:(NSString*)folder data:(NSString*) data
+{
+    ambientMap = [[NSString alloc]initWithString:data];
+    ambientMapId = [[mApp textures] newTexture:data file:data];
+}
+
+-(void)setAlphaVal:(NSString*)strdata
+{
+    //
+    alpha = [strdata floatValue];
+}
+
+-(void)setAlpha2:(NSString*) strdata
+{
+    //
+    alpha = 1.0f-[strdata floatValue];
+}
+
+-(void)setDiffuse_:(NSString*)data
+{
+    float difdata[4];
+    [ServerkoParse parseFloatArray2:difdata max:4 forData:data sep:@" "];
+    diffuse = [[GLColor alloc] initWithRGBA:
+                  (int)(difdata[0]*255.0f)
+                g:(int)(difdata[1]*255.0f)
+                b:(int)(difdata[2]*255.0f)
+                a:alpha*255.0f];
+}
+
+-(void)setAmbient_:(NSString*) data
+{
+    float ambdata[4];
+    [ServerkoParse parseFloatArray2:ambdata max:4 forData:data sep:@" "];
+    
+    
+    ambient = [[GLColor alloc] initWithRGBA:
+               (int)(ambdata[0]*255.0f)
+                                          g:(int)(ambdata[1]*255.0f)
+                                          b:(int)(ambdata[2]*255.0f)
+                                          a:alpha*255.0f];
+    
+}
+
+-(void)setTransform:(NSString*) data
+{
+    t = (float*)malloc(sizeof(float)*4);
+    [ServerkoParse parseFloatArray2:t max:4 forData:data sep:@" "];
+}
+
+
+@end
+
 
 
 @implementation TextureFactory
@@ -38,8 +143,10 @@
     if (self) {
 		mTextureDefault = 1;
 		mUpdated = false;
-		mTextures = [[NSMutableDictionary alloc] init];   
+		mTextures = [[NSMutableDictionary alloc] init];
         mToDelete = [[NSMutableArray alloc] init];
+        mMaterials = [[NSMutableDictionary alloc]init];
+        
 		[self newTexture:@"white" file:@"whitesys.png"];
 		[self newTexture:@"font" file:@"fontsys.png"];
 		mU1 = 0.01;
@@ -47,16 +154,17 @@
 		mU2 = 0.01;
 		mV2 = 0.01;
 		mCp = 0.00;
-	
+        mApp = app;
     }
 	
     return  self;
 }
 
 - (void) dealloc 
-{
+{    
     [mToDelete release];
     [mTextures release];
+    [mMaterials release];
     [super dealloc];  
 }
 
@@ -163,14 +271,14 @@
 }
 
 
--(void)newTexture:(NSString*)textname file:(NSString*)textfile
+-(int)newTexture:(NSString*)textname file:(NSString*)textfile
 {
     int tid = [self loadTexture:textfile];
     if (tid > 0)
     {
         [mTextures setObject:[NSNumber numberWithInt:tid] forKey:textname];        
     }
-    
+    return tid;
 }
 
 -(bool)isUpdated
@@ -217,5 +325,79 @@
 }
 
 
+-(void)loadMaterial:(NSString*)folder file:(NSString*) fname
+{
+    //
+    NSArray* paths = [fname componentsSeparatedByString:@"/"];
+    NSString* matfile = [paths objectAtIndex:[paths count]-1];
+    
+    
+    NSString* matPath  = [[NSBundle mainBundle] resourcePath];
+    matPath = [matPath stringByReplacingOccurrencesOfString:@"/" withString:@"//"];
+    
+    NSString* filepath = [NSString stringWithFormat:@"%@//%@", matPath , matfile];
+    
+    //NSLog(@"exec script %@", scriptname);
+    NSString* objstr = [NSString stringWithContentsOfFile:filepath usedEncoding:nil error:nil];
+
+    
+    //NSString* objstr = [NSString stringWithContentsOfFile:fname encoding:NSUTF8StringEncoding error:nil];
+    if (objstr == nil)return;
+    NSArray* tok = [objstr componentsSeparatedByString:@"\n"];
+    MaterialData* current = nil;
+    for(NSString* linein in tok)
+    {
+        NSString* line = [linein stringByReplacingOccurrencesOfString:@"\r" withString:@""];
+        line = [line stringByReplacingOccurrencesOfString:@"\t" withString:@""];
+        
+        if ([line hasPrefix:@"#"])
+        {
+            continue;
+        }else
+			if ([line hasPrefix:@"newmtl"])
+			{
+				current = [[MaterialData alloc] initWithApp:mApp];
+				[mMaterials setObject:current forKey:[line substringFromIndex:7]];
+			}else
+            if ([line hasPrefix:@"Ka" ])
+            {
+                [current setAmbient_:[line substringFromIndex:3]];
+            }else
+            if ([line hasPrefix:@"Kd"])
+            {
+                [current setDiffuse_:[line substringFromIndex:3]];
+            }else
+            if ([line hasPrefix:@"d"])
+            {
+                [current setAlphaVal:[line substringFromIndex:2]];
+            }else
+            if ([line hasPrefix:@"Tr"])
+            {
+                [current setAlpha2:[line substringFromIndex:2]];
+            }else
+            if ([line hasPrefix:@"map_Ka"])
+            {
+                [current setAmbientMap:folder data:[line substringFromIndex:7]];
+            }else
+            if ([line hasPrefix:@"map_Kd"])
+            {
+                [current setDiffuseMap:folder data:[line substringFromIndex:7]];
+            }else
+            if ([line hasPrefix:@"t "])
+            {
+                [current setTransform:[line substringFromIndex:2]];
+            }
+    }
+}
+
+-(MaterialData*)getMaterial:(NSString*) substring
+{
+    if ([mMaterials objectForKey:substring] != nil)
+    {
+        return [mMaterials objectForKey:substring];
+    }
+    return nil;
+	
+}
 @end
 

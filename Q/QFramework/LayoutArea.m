@@ -213,6 +213,10 @@
     if (domain != nil)
     {
         mDisplay = domain.mRenderId;
+        if (mDisplay == -1)
+        {
+            return;
+        }
     }
         
 }
@@ -804,7 +808,7 @@
         return;
     }
 
-    mModel = [[GameonModel alloc] initWithName:self.mID app:mApp];
+    mModel = [[GameonModel alloc] initWithName:self.mID app:mApp parenArea:nil];
     GameonModel* model = mModel;
     for (int a=0; a< [mItemFields count]; a++ ) {
      //   for (int a=0; a< 1; a++ ) {
@@ -1441,7 +1445,7 @@
 
 -(void) onDragg:(float)dx y:(float)dy z:(float)dz
 {
-	NSLog(@"dragg %f %f %f ",dx,dy, dz);
+	//NSLog(@"dragg %f %f %f ",dx,dy, dz);
 	if (mHasScrollH || mHasScrollV)
 	{
 		if (mScollerAnim == nil)
@@ -1492,6 +1496,58 @@
     mPsyData =  bodydata;
 }
 
+-(bool)acceptTouch:(GameonModel*)model doclick:(bool) click
+{
+    if (mActiveItems == 0)
+    {
+        return false;
+    }
+    if (click)
+    {
+        if ( mOnclick == nil || [mOnclick length] == 0 )
+            return false;
+    }else
+    {
+        if (!mHasScrollV && !mHasScrollH)
+        {
+            if ( (mOnFocusGain== nil || [mOnFocusGain length] == 0) &&
+    			(mOnFocusLost== nil || [mOnFocusLost length] == 0))
+                return false;
+        }
+    }
+    
+    if (mDisabledInput || ![self hasTouchEvent] )
+        return false;
+    if (mPageVisible == false || mState != LAS_VISIBLE)
+    {
+        return false;
+    }
+    if ( [mParent.mPagePopup length] > 0 &&  ![mPageID isEqualToString:mParent.mPagePopup])
+    {
+        return false;
+    }
+    
+    return true;
+}
+
+-(int)indexOfRef:(GameonModelRef*)ref
+{
+    if (mModel != nil && ref == [mModel ref:0])
+        return -1;
+    
+    if (mModelBack != nil && ref == [mModelBack ref:0])
+        return -1;
+    
+    for (int a=0; a < [mItemFields count]; a++)
+    {
+        LayoutField* f = [mItemFields objectAtIndex:a];
+        if (f != nil && f.mRef == ref)
+        {
+            return a;
+        }
+    }
+    return -1;
+}
 
 @end
 

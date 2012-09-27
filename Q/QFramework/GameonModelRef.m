@@ -39,6 +39,7 @@
 @synthesize mAreaRotation;
 @synthesize mScaleAdd;
 @synthesize mVisible;
+@synthesize mRefAlias;
 
 static float mStaticBounds[] =  
 { 
@@ -411,12 +412,18 @@ static float mStaticBounds[] =
 	}else
 	{
 		if (mParent != nil)[mParent remVisibleRef:self];
-		if (mAnimating && mAnimData != nil)
-		{
-			[mAnimData cancelAnimation:self];
-			mAnimating = false;
-		}		
+        [self cancelAnimation];
+
 	}
+}
+
+-(void)cancelAnimation
+{
+    if (mAnimating && mAnimData != nil)
+    {
+        [mAnimData cancelAnimation:self];
+        mAnimating = false;
+    }
 }
 
 -(bool) getVisible
@@ -507,6 +514,84 @@ static float mStaticBounds[] =
 -(void)assignPsyData:(BodyData*)bodydata
 {
     mPsyData = bodydata;
+}
+
+
+-(void) copyData:(GameonModelRef*) source
+{
+    for (int a=0; a< 3; a++)
+    {
+        mAreaPosition[a] = source.mAreaPosition[a];
+        mAreaRotation[a] = source.mAreaRotation[a];
+        mPosition[a] = source.mPosition[a];
+        mRotation[a] = source.mRotation[a];
+        mScale[a] = source.mScale[a];
+        mScaleAdd[a] = source.mScaleAdd[a];
+    }
+    
+    mOwner = source.mOwner;
+    mOwnerMax= source.mOwnerMax;
+    mTransformOwner = source.mTransformOwner;
+    
+}
+
+-(void)resizeMatrices:(int) size
+{
+    free(mAreaPosition);
+    free(mAreaRotation);
+    free(mScale);
+    free(mScaleAdd);
+    free(mPosition);
+    free(mRotation);
+
+    
+    mPosition = malloc(4 * sizeof(GLfloat));
+    mPosition[0] = 0;
+    mPosition[1] = 0;
+    mPosition[2] = 0;
+    mPosition[3] = 0;
+    
+    mRotation = malloc(4 * sizeof(GLfloat));
+    mRotation[0] = 0;
+    mRotation[1] = 0;
+    mRotation[2] = 0;
+    mRotation[3] = 0;
+    
+    mAreaPosition = malloc(4 * sizeof(GLfloat));
+    mAreaPosition[0] = 0;
+    mAreaPosition[1] = 0;
+    mAreaPosition[2] = 0;
+    mAreaPosition[3] = 0;
+    
+    mAreaRotation = malloc(4 * sizeof(GLfloat));
+    mAreaRotation[0] = 0;
+    mAreaRotation[1] = 0;
+    mAreaRotation[2] = 0;
+    mAreaRotation[3] = 0;
+        
+    mScale = malloc(4 * sizeof(GLfloat));
+    mScale[0] = 1;
+    mScale[1] = 1;
+    mScale[2] = 1;
+    mScale[3] = 1;
+    mScaleAdd = malloc(3 * sizeof(GLfloat));
+    mScaleAdd[0] = 1;
+    mScaleAdd[1] = 1;
+    mScaleAdd[2] = 1;
+    
+}
+
+-(float) distToCenter:(float*)loc
+{
+    float dist = (float)sqrt((double)(
+                                           (loc[0] - mMatrix[12])*
+                                           (loc[0] - mMatrix[12]) +
+                                           (loc[1] - mMatrix[13])*
+                                           (loc[1] - mMatrix[13]))+
+                                  (loc[2] - mMatrix[14])*
+                                  (loc[2] - mMatrix[14]));
+    return dist;
+    
 }
 
 

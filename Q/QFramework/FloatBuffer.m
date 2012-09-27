@@ -26,8 +26,8 @@
 {
 	if (self = [super init])
 	{
-        step = 16;
-        size = step;
+        size = 16;
+        step = 1024;
         count = 0;
         
         buffer = malloc(size * sizeof(GLfloat));
@@ -48,8 +48,8 @@
     //buffer = malloc(size * sizeof(GLfloat));
     
     buffer = realloc(buffer, size* sizeof(GLfloat));
-//    memcpy(buffer, bufferold, sizeold * sizeof(GLfloat));
-//    free(bufferold);
+    //memcpy(buffer, bufferold, sizeold * sizeof(GLfloat));
+    //free(bufferold);
     //buffer = realloc(buffer, size* sizeof(GLfloat));
 }
 
@@ -70,6 +70,10 @@
 
 - (GLfloat*)    get:(int)offset
 {
+    if (offset >= count)
+    {
+        assert(0);
+    }
     return &buffer[offset];
 }
 

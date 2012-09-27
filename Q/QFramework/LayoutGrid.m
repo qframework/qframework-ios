@@ -498,6 +498,25 @@
     }
 }
 
+-(void)onCameraMove:(NSString*)lookAt eye:(NSString*)eyeStr domain:(NSString*)domainid delay:(NSString*) delay
+{
+    float lookat[3];
+    [ServerkoParse parseFloatArray:lookat max:3 forData:lookAt];
+    
+    float eye[3];
+    [ServerkoParse parseFloatArray:eye max:3 forData:eyeStr];
+
+    
+    RenderDomain* domain = [[mApp world] getDomainByName:domainid];
+    if (domain != nil)
+    {
+        int animdelay = [delay intValue];
+        [domain.mCS moveCamera:lookat eye:eye delay:(double)animdelay];
+    }
+}
+
+
+
 -(void) onCameraProj:(NSString*)fov data:(NSString*) near data2:(NSString*)far  domain:(NSString*)domainid
 {
     RenderDomain* domain = [mApp.world getDomainByName:domainid];
@@ -600,7 +619,10 @@
             break;            
         case 2502:
             [self onCameraProj:resptype data:respdata data2:respdata2 domain:respdata3];
-            break;			
+            break;
+        case 2504:
+            [self onCameraMove:resptype eye:respdata domain:respdata2 delay:respdata3];
+            break;
         case 3001:
             [self onAreaDelete:resptype data:respdata];
             break;				                
@@ -1056,7 +1078,7 @@
     float mindist = 1e7;
 
     float rayVec[3];
-    float* eye;
+    float* eye  = NULL;
     int lastDomain = -1;
     //mCS.screen2spaceVec(x , y, rayVec);
     

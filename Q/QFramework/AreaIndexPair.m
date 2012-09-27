@@ -23,6 +23,7 @@
 @implementation AreaIndexPair
 
 @synthesize     mArea;
+@synthesize     mAlias;
 @synthesize     mOnclick;
 @synthesize     mOnFocusLost;
 @synthesize     mOnFocusGain;

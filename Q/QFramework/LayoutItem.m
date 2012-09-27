@@ -99,7 +99,7 @@
 
 	[mModelRef setPosition:x y:y z:z+0.01];
 	[mModelRef setRotate:0 y:0 z:0 ];    
-	[mModelRef setScale:w y:h z:1];
+	[mModelRef setScale:w y:h z:w];
     
     if (copyref) {
         [mModelRefOld copy:mModelRef];

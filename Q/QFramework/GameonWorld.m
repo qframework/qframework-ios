@@ -52,7 +52,7 @@ bool gAmbientLightChanged = false;
         mInDraw = false;
 		
         [self addDomain:@"world" domain:0 visible:true];
-        [self addDomain:@"hud" domain:INT_MAX visible:true];
+        [self addDomain:@"hud" domain:10000 visible:true];
 		
     }
     return self;
@@ -72,7 +72,7 @@ bool gAmbientLightChanged = false;
 -(void) test
 {
     
-    GameonModel* model = [[GameonModel alloc] initWithName:@"test" app:mApp];
+    GameonModel* model = [[GameonModel alloc] initWithName:@"test" app:mApp parenArea:nil];
     [model createCube:-4.0f  btm:-4.0f b:-4.0f r:4.0f t:4.0f f:4.0f c:mApp.colors.red];
     [model generate];
     model.mEnabled = true;
@@ -81,7 +81,7 @@ bool gAmbientLightChanged = false;
 
 -(void)initSplash:(NSString*) name
 {
-	GameonModel* model = [[GameonModel alloc] initWithName:@"test" app:mApp];
+	GameonModel* model = [[GameonModel alloc] initWithName:@"test" app:mApp parenArea:nil];
 	
 //	[model createPlane:-2.0 btm:-1.32f b:0.0f r:2.0f t:1.32f f:0.0f c:mApp.colors.white];
 	
@@ -166,7 +166,8 @@ bool gAmbientLightChanged = false;
     mLockedDraw = locked;
 }	
 
--(void) draw {
+-(void) draw:(double)delay
+{
     if (gAmbientLightChanged)
 	{
         //NSLog(@" set alight %f %f %f %f" , gAmbientLight[0], gAmbientLight[1],gAmbientLight[2],gAmbientLight[3]);
@@ -176,7 +177,7 @@ bool gAmbientLightChanged = false;
     //NSLog(@" start draw ---------");
     for (RenderDomain* domain in mDomains)
     {
-        [domain draw];
+        [domain draw:delay];
     }
 
     
@@ -188,7 +189,7 @@ bool gAmbientLightChanged = false;
     glEnableClientState(GL_COLOR_ARRAY);
     glEnable( GL_COLOR_MATERIAL);
     glEnableClientState(GL_VERTEX_ARRAY);	
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
     glFrontFace(GL_CCW);
     glEnable(GL_TEXTURE_2D);
     glActiveTexture(GL_TEXTURE0);
@@ -448,5 +449,52 @@ bool gAmbientLightChanged = false;
     }		
 }
 
+-(AreaIndexPair*)onTouchModel:(float)x y:(float)y dotouch:(bool)click
+{
+    AreaIndexPair* data= nil;
+    for (int a= [mDomains count]-1 ; a>=0;  a--)
+    {
+        RenderDomain* domain = [mDomains objectAtIndex:a];
+        data= [domain onTouchModel:x y:y click:click noareas:true];
+        if (data != nil)
+        {
+            return data;
+        }
+    }
+    return nil;
+}
+
+-(void)domainPan:(NSString*)name mode:(NSString*)mode scrolls:(NSString*) scrollers
+                bounds:(NSString*) coords
+{
+    RenderDomain* domain = [self getDomainByName:name];
+    if (domain != nil)
+    {
+        [domain pan:mode scroll:scrollers bounds:coords];
+    }
+    
+}
+
+-(bool) panDomain:(float)x y:(float) y
+{
+    for (int a= [mDomains count]-1 ; a>=0;  a--)
+    {
+        RenderDomain* domain = [mDomains objectAtIndex:a];
+        if ([domain onPan:x y:y])
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+-(void) resetDomainPan
+{
+    for (int a= [mDomains count]-1 ; a>=0;  a--)
+    {
+        RenderDomain* domain = [mDomains objectAtIndex:a];
+        [domain resetPan];
+    }
+}
 
 @end

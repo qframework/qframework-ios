@@ -117,6 +117,7 @@ static double currentTime()
 		mLastClickTime = 0;
 		mSupportOld = false;
         mContentScale = 1;
+        mRenderThisFrame = false;
     }
     return self;
 }
@@ -166,6 +167,14 @@ static double currentTime()
 
     //NSLog(@" onClick %f %f %f %f", x,y,xhud,yhud);    
     AreaIndexPair* field = [mDataGrid onClickNearest:x y:y];
+    
+    if (field == nil)
+    {
+        field =[mWorld onTouchModel:x y:y dotouch:true];
+    }
+    
+
+    
     if (field != nil && field.mOnclick != nil) {
         // send data
         NSMutableString* datastr = [[[NSMutableString alloc] initWithString:field.mOnclick] autorelease];
@@ -176,10 +185,19 @@ static double currentTime()
 				[mScript execScript:[datastr substringFromIndex:3 ]];
 			}else
 			{
-				NSMutableString* cmd  = [[NSMutableString alloc] initWithString:[datastr substringFromIndex:3]];
-				[cmd appendFormat:@"('%@',%d , %d, [%f,%f,%f] , %f);",field.mArea,field.mIndex , (int)delay,field.mLoc[0],field.mLoc[1],field.mLoc[2]  , mLastDist];
-				[mScript execScript:cmd];
-                [cmd release];
+                if (field.mAlias == nil)
+                {
+                
+                    NSMutableString* cmd  = [[NSMutableString alloc] initWithString:[datastr substringFromIndex:3]];
+                    [cmd appendFormat:@"('%@',%d , %d, [%f,%f,%f] , %f);",field.mArea,field.mIndex , (int)delay,field.mLoc[0],field.mLoc[1],field.mLoc[2]  , mLastDist];
+                    [mScript execScript:cmd];
+                    [cmd release];
+                }else{
+                    NSMutableString* cmd  = [[NSMutableString alloc] initWithString:[datastr substringFromIndex:3]];
+                    [cmd appendFormat:@"('%@',%d ,'%@', %d, [%f,%f,%f] , %f);",field.mArea,field.mIndex , field.mAlias, (int)delay,field.mLoc[0],field.mLoc[1],field.mLoc[2]  , mLastDist];
+                    [mScript execScript:cmd];
+                    [cmd release];
+                }
 			}
 		}else
 		{
@@ -208,12 +226,16 @@ static double currentTime()
     [self fireTouchEvent:1 x:(float)x y:(float)y delay:0];
 }
 
--(void)touchEnd:(int)x y:(int)y delay:(long) pressdelay
+-(void)touchEnd:(int)x y:(int)y delay:(long) pressdelay dotouch:(bool)dotouch
 {
     if (!mTouchEnabled)
-        return;    	
-    [self fireTouchEvent:2 x:(float)x y:(float)y delay:pressdelay];
+        return;
+    if (dotouch)
+    {
+        [self fireTouchEvent:2 x:(float)x y:(float)y delay:pressdelay];
+    }
     [self onClick:(float)x y:(float)y];
+    [mWorld resetDomainPan];
 }
 
 
@@ -252,7 +274,7 @@ static double currentTime()
 		
 	}else
 	{
-		[mView onDrawFrame];
+		[mView onDrawFrame:mFrameDeltaTime];
 	}
 	if (!mCameraSet)
 	{
@@ -481,12 +503,12 @@ static double currentTime()
 }
 
 
--(void)mouseDragged:(float)x y:(float) y forClick:(bool)notimecheck
+-(bool)mouseDragged:(float)x y:(float) y forClick:(bool)notimecheck
  {
 	// 
     if (!mTouchEnabled)
     {
-     return;
+     return false;
     }
 	
 	if (mFrameDeltaTime == 0)
@@ -495,15 +517,18 @@ static double currentTime()
 		mLastDragTime += mFrameDeltaTime;
 	if (!notimecheck && mLastDragTime < 20)
 	{
-        NSLog(@" out of dragg %f " , mLastDragTime);
-		return;
+        //NSLog(@" out of dragg %f " , mLastDragTime);
+		return false;
 	}
      
     [self fireTouchEvent:0 x:(float)x y:(float)y delay:0];
 	mLastDragTime = 0;
 
     AreaIndexPair* field = [mDataGrid onDragNearest:x y:y];
-	
+     if (field == nil)
+     {
+         field = [mWorld onTouchModel:x y:y dotouch:false];
+     }
 	if (field != nil && mFocused != nil)
 	{
 		if ([field.mArea isEqual:mFocused.mArea] )
@@ -514,14 +539,14 @@ static double currentTime()
 				mLastDrag[1] = field.mLoc[1];
 				mLastDrag[2] = field.mLoc[2];
                 [field release];
-				return;
+				return true;
 			}else
 			{
 				float delta0 = field.mLoc[0]-mLastDrag[0];
 				float delta1 = field.mLoc[1]-mLastDrag[1];
 				float delta2 = field.mLoc[2]-mLastDrag[2];
 				mLastDist = (float)sqrt( (delta0*delta0)+(delta1*delta1)+(delta2*delta2) );
-				NSLog(@" delta of dragg %f %f %f " , delta0, delta1, delta2);
+				//NSLog(@" delta of dragg %f %f %f " , delta0, delta1, delta2);
 				LayoutArea* area = [mDataGrid getArea:field.mArea];
 				if (area != nil)
 				{
@@ -540,7 +565,7 @@ static double currentTime()
 			field.mIndex == mFocused.mIndex)
 		{
             [field release];
-			return;
+			return true;
 		}else
 		{
 			[self onFocusLost:mFocused];
@@ -561,9 +586,23 @@ static double currentTime()
 	{
 		[self onFocusGain:field];
 	}
+    if (field == nil)
+    {
+        if ([mWorld panDomain:(float)x y:(float)y])
+        {
+            mRenderThisFrame = true;
+        }
+    }
+     
 	mLastDrag[0] = 1e07f;		
 
-	
+    if (field != nil)
+    {
+        return true;
+    }else
+    {
+        return false;
+    }
 }
 
 
@@ -579,11 +618,20 @@ static double currentTime()
 		{
 			[mScript execScript:[datastr substringFromIndex:3 ]];
 		}else
-		{			
-			NSMutableString* cmd  = [[NSMutableString alloc] initWithString:[datastr substringFromIndex:3]];
-			[cmd appendFormat:@"('%@',%d);",field.mArea,field.mIndex];
-			[mScript execScript:cmd];
-            [cmd release];
+		{
+            if (field.mAlias == nil)
+            {
+                NSMutableString* cmd  = [[NSMutableString alloc] initWithString:[datastr substringFromIndex:3]];
+                [cmd appendFormat:@"('%@',%d);",field.mArea,field.mIndex];
+                [mScript execScript:cmd];
+                [cmd release];
+            }else
+            {
+                NSMutableString* cmd  = [[NSMutableString alloc] initWithString:[datastr substringFromIndex:3]];
+                [cmd appendFormat:@"('%@',%d,'%@');",field.mArea,field.mIndex,field.mAlias];
+                [mScript execScript:cmd];
+                [cmd release];
+            }
 		}
 		
 	}else
@@ -608,12 +656,21 @@ static double currentTime()
 		{
 			[mScript execScript:[datastr substringFromIndex:3 ]];
 		}else
-		{			
-			NSMutableString* cmd  = [[NSMutableString alloc] initWithString:[datastr substringFromIndex:3]];
-			[cmd appendFormat:@"('%@',%d);",field.mArea,field.mIndex];
-			[mScript execScript:cmd];
-            [cmd release];
-		}
+		{
+            if (field.mAlias == nil)
+            {
+                NSMutableString* cmd  = [[NSMutableString alloc] initWithString:[datastr substringFromIndex:3]];
+                [cmd appendFormat:@"('%@',%d);",field.mArea,field.mIndex];
+                [mScript execScript:cmd];
+                [cmd release];
+            }else
+            {
+                NSMutableString* cmd  = [[NSMutableString alloc] initWithString:[datastr substringFromIndex:3]];
+                [cmd appendFormat:@"('%@',%d,'%@');",field.mArea,field.mIndex,field.mAlias];
+                [mScript execScript:cmd];
+                [cmd release];
+            }
+        }
 		
 	}else
 	{
@@ -624,10 +681,10 @@ static double currentTime()
 
 }
 
--(void)onFocusProbe:(float)x y:(float) y
+-(bool)onFocusProbe:(float)x y:(float) y
 {
 	mLastClickTime = currentTime();
-	[self mouseDragged:x y:y forClick:true];
+	return [self mouseDragged:x y:y forClick:true];
 }
 
 - (void) onSurfaceChanged:(int)width h:(int) height
@@ -702,6 +759,12 @@ static double currentTime()
 -(bool)hasData
 {
     //System.out.println("to skip " + mResponsesQueue.size() + " " + mAnims.mCount);
+    if (mRenderThisFrame)
+    {
+        mRenderThisFrame = false;
+        return true;
+    }
+    
     if (mDrawSPlash || [mBox2dWrapper isActive])
     {
         return true;
@@ -834,7 +897,7 @@ static double currentTime()
             [mObjectsFact create:resptype data:respdata color:respdata3];
             break;
         case 4110:
-            [mObjectsFact place:resptype data:respdata];
+            [mObjectsFact place:resptype data:respdata state:respdata2];
             break;
         case 4120:
             [mObjectsFact scale:resptype data:respdata];
@@ -850,13 +913,16 @@ static double currentTime()
             break;			
 		case 4160:
 			[mObjectsFact rotate:resptype data:respdata];
-			break;							
+			break;
         case 4200:
             [mAnims move:resptype loc:respdata data:respdata2 callback:respdata3];
             break;			
         case 4210:
             [mAnims rotate:resptype angle:respdata data:respdata2 callback:respdata3];
-            break;			            
+            break;
+        case 4300:
+            [mAnims animObject:resptype objid:respdata data:respdata2 delay:respdata3 callback:nil];
+            
         case 5000:
 			[mSounds newSound:resptype file:respdata];
             break;
@@ -889,7 +955,10 @@ static double currentTime()
             break;        	          	          	                          
         case 6007:
             [mItems addShapeFromData:resptype data:respdata transform:respdata2 uvbounds:respdata3];
-            break;        	          	          	                                      
+            break;
+        case 6008:
+            [mItems createModelFromFile:resptype fromFile:respdata];
+            break;
         case 7000:
             [self connect:resptype callback:respdata];
             break;            
@@ -916,7 +985,10 @@ static double currentTime()
             break;
         case 8003:
             [mWorld domainHide:resptype ];
-            break;    							
+            break;
+        case 8004:
+            [mWorld domainPan:resptype mode:respdata scrolls:respdata2 bounds:respdata3];
+            break;
         case 9000:
             [mBox2dWrapper initWorld:resptype gravity:respdata mapping:respdata2];
             break;

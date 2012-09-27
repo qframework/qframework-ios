@@ -24,7 +24,7 @@
 @class GameonApp;
 @class GameonCS;
 @class TextItem;
-
+@class AreaIndexPair;
 @interface RenderDomain : NSObject {
 
 	NSMutableArray* mVisibleModelList;
@@ -54,7 +54,15 @@
 	GameonCS*	mCS;
     
 	bool mVisible;
-    
+
+    bool	mPanX;
+    bool	mPanY;
+    float   mPanCoords[4];
+    float 	mLastPanX;
+    float 	mLastPanY;
+    float   mSpaceBottomLeft[2];
+    float   mSpaceTopRight[2];
+
 	
 }
 
@@ -64,7 +72,7 @@
 @property (nonatomic, readonly)bool 	mVisible;
 @property (nonatomic, readonly)NSString*	mName;
 
--(void) draw;
+-(void) draw:(double)delay;
 
 -(void) setVisible:(GameonModel*) model;
 -(void) remVisible:(GameonModel*) model force:(bool) force;
@@ -80,5 +88,10 @@
 - (void) setFov:(float)fovf near:(float)nearf far:(float)farf ;
 -(void) perspective:(float)fovy aspect:(float)aspect zmin:(float)zmin zmax:(float) zmax  updateFrustrum:(bool)update;
 -(bool)hasVisible:(GameonModel*)model;
+-(AreaIndexPair*)onTouchModel:(float)x y:(float)y click:(bool)click noareas:(bool) noareas;
+-(void)pan:(NSString*)mode scroll:(NSString*)scrollers bounds:(NSString*)coords;
+-(bool)onPan:(float)x y:(float) y;
+-(void) resetPan;
+
 @end
 

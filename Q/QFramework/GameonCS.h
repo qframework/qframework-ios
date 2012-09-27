@@ -20,6 +20,8 @@
 
 #import <Foundation/Foundation.h>
 
+@class GameonApp;
+@class GameonModelRef;
 
 @interface GameonCS : NSObject {
 
@@ -38,7 +40,13 @@
 	
 	float* mUpZ;    
     float mScreenHeight;
-    float mScreenWidth;    
+    float mScreenWidth;
+    
+    GameonApp* mApp;
+    GameonModelRef* mCameraData;
+    GameonModelRef* mAnimDataStart;
+    GameonModelRef* mAnimDataEnd;
+    
 }
 
 @property (nonatomic, readonly, getter=eye) float* mCameraEye;
@@ -50,7 +58,7 @@
 - (void) screen2space:(float)x sy:(float)y sc:(float*) spacecoords;
 - (float) snap_cam_z:(float*)eye  center:(float*)center up:(float*) up;
 -(void)setCamera:(float*)lookat eye:(float*) eye;
--(void)applyCamera;
+-(void)applyCamera:(double)delay;
 -(void)applyPerspective;
 -(void)getScreenBounds:(float*)world;
 -(float)getCanvasW;
@@ -61,6 +69,11 @@
 -(float) worldHeight;
 -(float) worldCenterX;
 -(float) worldCenterY;
+- (id)initWithApp:(GameonApp*)app;
+-(void) moveCamera:(float*)lookat eye:(float*)eye delay:(double)animdelay;
+-(float*)lookat;
+-(float*)up;
+-(float*)eye;
 
 @end
 

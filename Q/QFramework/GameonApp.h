@@ -101,6 +101,8 @@
     NSString* 	mOnTouchEndCallback;
     NSString* 	mOnTouchStartCallback;
     
+    bool mRenderThisFrame;
+    //NSString*   mAppName;
 }
 
 @property (nonatomic, readonly, getter=grid) LayoutGrid* mDataGrid;
@@ -121,7 +123,7 @@
 @property (nonatomic, readonly) float mSplashY2;	
 
 
--(void)mouseDragged:(float)x y:(float) y forClick:(bool)notimecheck;
+-(bool)mouseDragged:(float)x y:(float) y forClick:(bool)notimecheck;
 
 -(void) endScript;
 
@@ -143,7 +145,7 @@
 -(void)loadModule2:(NSString*)resptype script:(NSString*)respdata;
 -(void)onFocusLost:(AreaIndexPair*) field;
 -(void)onFocusGain:(AreaIndexPair*) field;
--(void)onFocusProbe:(float)x y:(float) y;
+-(bool)onFocusProbe:(float)x y:(float) y;
 -(void)drawFrame;
 - (void) onSurfaceChanged:(int)width h:(int) height;
 -(void) setSplash:(NSString*)splash delay:(long)delay;
@@ -162,7 +164,7 @@
 -(void) setSocial:(NSObject<SocialDelegate>*)delegate;
 -(void) setContentScale:(int)scale;    
 -(void)touchStart:(int)x y:(int) y;
--(void)touchEnd:(int)x y:(int)y delay:(long) pressdelay;
+-(void)touchEnd:(int)x y:(int)y delay:(long)pressdelay dotouch:(bool)dotouch;
 -(void) fireTouchEvent:(int)type x:(float)x  y:(float)y delay:(long)delay;
 -(void) registerOnTouch:(NSString*)resptype  type:(int)type ;
 

@@ -379,6 +379,19 @@
 	return count;
 }
 
++(int) parseFloatArray2:(float*)array max:(int)max forData:(NSString*)data sep:(NSString*)sep
+{
+	NSArray* tok = [data componentsSeparatedByString:sep];
+	int count;
+	for (count=0; count < [tok count] &&  count < max; count++)
+	{
+		array[count] = [[tok objectAtIndex:count ] floatValue];
+	}
+	
+	return count;
+}
+
+
 +(int) parseIntArray:(int*)array max:(int)max forData:(NSString*) data
 {
 	NSArray* tok = [data componentsSeparatedByString:@","];

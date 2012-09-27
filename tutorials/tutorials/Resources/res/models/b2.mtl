@@ -1,0 +1,69 @@
+# 
+# Wavefront material file
+# Converted by 3D Exploration 1.7 beta
+# XDimension Software, LLC
+# http://www.xdsoft.com/explorer/
+# 
+newmtl CHRYSLER_TIL_TXT
+Ka 0.792157 0.784314 0.682353
+Kd 0.792157 0.784314 0.682353
+Ks 0.792157 0.784314 0.682353
+illum 2
+Ns 19.6983
+#map_Kd CRY_TILE.CEL
+map_Kd b2.png
+t 0 0 2 2
+
+newmtl WINDOW__CRYSLER
+Ka 0 0 0
+Kd 0 0 0
+Ks 0.729412 0.729412 0.729412
+illum 2
+Ns 45.2548
+#map_Kd CRY_WIN.GIF
+map_Kd b2.png
+t 0.5 0 2 2
+
+newmtl SCHOOL_FLOOR_TIL
+Ka 0.678431 0.678431 0.678431
+Kd 0.678431 0.678431 0.678431
+Ks 0 0 0
+illum 2
+Ns 2
+#map_Kd REDFLRTI.WIN
+map_Kd b2.png
+t 0 0 2 2
+
+newmtl CHRYSLER_STARS
+Ka 0.152941 0.188235 0.278431
+Kd 0.152941 0.188235 0.278431
+Ks 0.862745 0.870588 0.968627
+illum 2
+Ns 119.428
+
+newmtl CHRYSLER_GLASS
+Ka 0.152941 0.152941 0.152941
+Kd 0.152941 0.152941 0.152941
+Ks 0 0 0
+illum 2
+Ns 588.134
+#map_Kd CLOUD.GIF
+map_Kd b2.png
+t 0 0.5 2 2
+
+newmtl Explorer_Default
+Ka 0.117647 0.117647 0.117647
+Kd 0.752941 0.752941 0.752941
+Ks 0.752941 0.752941 0.752941
+illum 2
+Ns 8
+
+newmtl CHRYSLER_ARC_TXT
+Ka 0.792157 0.784314 0.682353
+Kd 0.792157 0.784314 0.682353
+Ks 0.792157 0.784314 0.682353
+illum 2
+Ns 19.6983
+#map_Kd CRY_ARC.CEL
+map_Kd b2.png
+t 0.5 0.5 2 2

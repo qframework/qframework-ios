@@ -64,7 +64,12 @@
         }else
         if ([subtype hasPrefix:@"hlist"])
         {
+            mHasScrollH = true;
             mSubType = LATST_HLIST;
+        }else
+        if ([subtype hasPrefix:@"plainlist"])
+        {
+            mSubType = LATST_PLAINLIST;
         }
         
         mType = LAT_TABLE;
@@ -182,6 +187,10 @@
     {
         // for now we only draw table border
         [self initHList];
+    }else if (mSubType == LATST_PLAINLIST)
+    {
+        // for now we only draw table border
+        [self initPlainList];
     }
 }
 
@@ -267,7 +276,42 @@
 	return true;
 }
 
-
+-(void)calcScrollCoords:(int)col ind:(int)ind max:(int)max f:(LayoutField*)f
+{
+    float div = (float)1/(float)(mSizeW-1);
+    float p = (float)(ind-max/2) * div + div/2;
+    
+    // calculate X based on row info
+    f.mX = 0;
+    f.mY = 0;
+    f.mW = 1;
+    f.mH = 1;
+    
+    if (true)//mHasScrollV)
+    {
+        f.mX -= (0.05f*mBounds[0]);
+        f.mY -= (p*mBounds[1]);// - div/2;
+        f.mZ = 0.0f;
+        f.mW *= 0.9f;
+        f.mH *= div;
+        f.mX += mFieldsData[col * 4]*mBounds[0];
+        f.mY += mFieldsData[col * 4+1]*mBounds[1]*div;
+        
+    }
+    else if (mHasScrollH)
+    {
+        f.mX += (p*mBounds[0]);// - div/2;
+        f.mY -= (0.05f*mBounds[1]);
+        f.mZ = 0.0f;
+        
+        f.mH *= 0.9f;
+        f.mW *= div;
+        
+    }
+    f.mW *= mFieldsData[col * 4+2];
+    f.mH *= mFieldsData[col * 4+3];
+    
+}
 
 
 -(void)createCustomModel
@@ -279,7 +323,7 @@
 		{
 			return;
 		}
-		mModel = [[GameonModel alloc] initWithName:@"scroll" app:mApp];
+		mModel = [[GameonModel alloc] initWithName:@"scroll" app:mApp parenArea:self];
 		GameonModel* model = mModel;
 		GLColor* fcolor = nil;
 		if (mColorForeground != nil)
@@ -391,7 +435,7 @@
 
 -(void)createFields:(NSString*)data
 {
-	if (mSubType == LATST_LIST || mSubType == LATST_HLIST)
+	if (mSubType == LATST_LIST || mSubType == LATST_HLIST|| mSubType == LATST_PLAINLIST)
 	{
 		// parse info for coordinates of each field in rows
 		[self createDefaultFields];
@@ -430,15 +474,29 @@
 	
 }
 
+-(void) initPlainList
+{
+    mHasScrollV = false;
+    mHasScrollH = false;
+    [self updateFields];
+    
+}
 -(void) updateScrollers
 {
+    bool allenabled = false;
+    if (!mHasScrollH && !mHasScrollV)
+    {
+        allenabled = true;
+    }
+
+    
 	int count = 0;
 	int x = 0,y = 0;
 	for (int a=0; a < mSize ; a++)
 	{
 		[self setField:a];
 		LayoutField* field = [mItemFields objectAtIndex:a];
-		if ([self getScrollCoords:x ind:y  field:field])
+		if ([self getScrollCoords:x ind:y  field:field] || allenabled)
 		{
 			//field.mRef.clear();
 			field.mH *= mModifiersH[count];
@@ -471,7 +529,7 @@
 		}
 		
 	}
-	if (mModel != nil)
+	if (mModel != nil && !allenabled)
 	{
 		[mModel setActive:true];
 		[mModel setState:LAS_VISIBLE];
@@ -499,4 +557,44 @@
 		[self pushFrontItem:strData];
 	}
 }
+    
+
+-(void) updateFields
+{
+    //bool allenabled = false;
+    int count = 0;
+    int x = 0,y = 0;
+    for (int a=0; a < mSize ; a++)
+    {
+        [self setField:a];
+        LayoutField* field = [mItemFields objectAtIndex:a];
+        [self calcScrollCoords:x ind:y max:mSizeW f:field];
+        
+        //field.mRef.clear();
+        if (x == mSizeH-1)
+        {
+            count++;
+        }
+        field.mActive = true;
+		[field.mRef setPosition:field.mX y:field.mY z:field.mZ];
+		[field.mRef setScale:field.mW y:field.mH z:1];
+        [field.mRef set];
+        [field updateLocation];
+        [field setState:LAS_VISIBLE];
+        
+        x++;
+        if (x >= mSizeH)
+        {
+            x = 0;
+            y++;
+        }
+        
+    } 
+    
+    
+}
+
+
+
 @end
+    

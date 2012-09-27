@@ -106,7 +106,7 @@
 -(void)createAnim:(GameonModelRef*)start
 		end:(GameonModelRef*)end def:(GameonModelRef*)def 
 		delay:(int)delay steps:(int)steps owner:(LayoutItem*)owner 
-		repeat:(int)repeat hide:(bool)hide ;
+		repeat:(int)repeat hide:(bool)hide save:(bool)savebackup;
 			
 -(void) decCount;
 -(void) incCount;

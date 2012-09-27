@@ -26,6 +26,9 @@
 #import "GameonApp.h"
 #import "ServerkoParse.h"
 #import "GMath.h"
+#import "ServerkoParse.h"
+#import "FloatBuffer.h"
+#import "GameonModelData.h"
 
 @implementation ItemFactory
 
@@ -168,7 +171,7 @@
         
     }
 		
-    GameonModel* model = [[GameonModel alloc] initWithName:template app:mApp];
+    GameonModel* model = [[GameonModel alloc] initWithName:template app:mApp parenArea:nil];
 	
     if ([template isEqualToString:@"cylinder"])
     {
@@ -282,7 +285,7 @@
 -(GameonModel*) createFromType:(int)template color:(GLColor*)color texture:(int)texid grid:(float*)grid
 {
 
-    GameonModel* model = [[[GameonModel alloc] initWithName:@"item" app:mApp] autorelease];
+    GameonModel* model = [[[GameonModel alloc] initWithName:@"item" app:mApp parenArea:nil] autorelease];
     [self addModelFromType:model template:template color:color texture:texid grid:grid];
     return model;
 }
@@ -379,7 +382,7 @@
 
 -(void)newEmpty:(NSString*) name
 {
-    GameonModel* model = [[GameonModel alloc] initWithName:name app:mApp];
+    GameonModel* model = [[GameonModel alloc] initWithName:name app:mApp parenArea:nil];
     model.mIsModel = true;
     if (model != nil)
     {
@@ -446,6 +449,18 @@
     {
         [model addPlane:mat colors:cols colorlen:clen uvbounds:uvb];
     }
+    else if ([type isEqualToString:@"cylinder"])
+    {
+        [model createModelFromData2:modelCyl
+                             length:GameonModelData_getDataLen(GMODEL_CYLYNDER) transform:mat
+                           uvbounds:uvb cols:cols];
+    }
+    else if ([type isEqualToString:@"cube" ])
+    {
+        [model createModelFromData2:modelCube
+                             length:GameonModelData_getDataLen(GMODEL_CUBE) transform:mat
+                           uvbounds:uvb cols:cols];
+    }
     free(cols);
     /*
      else if (type.equals("cube"))
@@ -508,6 +523,116 @@
     [model createModelFromData:inputdata length:datalen transform:mat uvbounds:uvb];
     free(inputdata);
 }
+
+-(void) createModelFromFile:(NSString*)modelname fromFile:(NSString*) fname
+{
+    GameonModel* model = [mModels objectForKey:modelname];
+    if (model != nil)
+    {
+        return;
+    }
+    
+    model = [[GameonModel alloc] initWithName:modelname app:mApp parenArea:nil];
+    
+    NSMutableString* location = [[[NSMutableString alloc] initWithString:fname ] autorelease];
+
+    FloatBuffer* vertices = [[FloatBuffer alloc] init];
+    FloatBuffer* textvertices = [[FloatBuffer alloc] init];
+    
+    NSArray* paths = [fname componentsSeparatedByString:@"/"];
+    NSMutableString* folder = [NSMutableString stringWithString:@""];
+    if ([paths count] > 1)
+    {
+        for (int a=0; a< [paths count] -1; a++)
+        {
+            [folder appendFormat:@"%@//",[paths objectAtIndex:a] ];
+        }
+    }
+    
+    NSString* objfile = [paths objectAtIndex:[paths count]-1];
+    
+    
+    NSString* objPath  = [[NSBundle mainBundle] resourcePath];
+    objPath = [objPath stringByReplacingOccurrencesOfString:@"/" withString:@"//"];
+    
+    NSString* filepath = [NSString stringWithFormat:@"%@//%@", objPath , objfile];
+    
+    //NSLog(@"exec script %@", scriptname);
+    NSString* objstr = [NSString stringWithContentsOfFile:filepath usedEncoding:nil error:nil];
+
+    
+//    NSString *fullPath = [[NSBundle mainBundle] pathForResource:objfile];
+    
+    //NSString* objstr = [NSString stringWithContentsOfFile:objfile usedEncoding:nil error:nil];
+    
+    NSArray* tok = [objstr componentsSeparatedByString:@"\n"];
+    for (int a=0; a< [tok count]; a++)
+    {
+        NSString* linein = [tok objectAtIndex:a];
+        NSString* line = [linein stringByReplacingOccurrencesOfString:@"\r" withString:@""];
+        line = [line stringByReplacingOccurrencesOfString:@"\t" withString:@""];
+        if ([line hasPrefix:@"#"])
+        {
+            continue;
+        }
+        if ([line hasPrefix:@"v "])
+        {
+            [self parseVertices:vertices data:[line substringFromIndex:2]];
+        }else
+        if ([line hasPrefix:@"vt "])
+        {
+            [self parseTextureVertices:textvertices data:[line substringFromIndex:3]];
+        }else
+        if ([line hasPrefix:@"vn "])
+        {
+            continue;
+        }else
+        if ([line hasPrefix:@"vp "])
+        {
+            continue;
+        }else
+        if ([line hasPrefix:@"f "])
+        {
+            //NSLog(@"%@"  ,line);
+            [model addShapeFromString:vertices textv:textvertices data:[line substringFromIndex:2]];
+        }else
+        if ([line hasPrefix:@"mtllib "])
+        {
+            [[mApp textures] loadMaterial:folder file:[line substringFromIndex:7]];
+        }else
+        if ([line hasPrefix:@"usemtl "])
+        {
+            [model useMaterial:[line substringFromIndex:7]];
+        }
+    }
+    // TODO multiple material textures
+    // TODO normals and much more
+    [model normalize];
+    [model invert:false y:true z:false];
+    [mModels setObject:model forKey:modelname];
+    [vertices release];
+    [textvertices release];
+}
+
+-(void)parseVertices:(FloatBuffer*)vertices data:(NSString*)data
+{
+    float array[4];
+    [ServerkoParse parseFloatArray2:array max:4 forData:data sep:@" "];
+    [vertices put:array[0]];
+    [vertices put:array[1]];
+    [vertices put:array[2]];
+    //[vertices put:array[3]];
+}
+
+-(void)parseTextureVertices:(FloatBuffer*)vertices data:(NSString*)data
+{
+    float array[2];
+    [ServerkoParse parseFloatArray2:array max:2 forData:data sep:@" "];
+    [vertices put:array[0]];
+    [vertices put:array[1]];
+}
+
+
 
 @end
 

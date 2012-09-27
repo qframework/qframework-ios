@@ -159,5 +159,7 @@
 -(void) anim:(NSString*)type delay:(NSString*)delay data:(NSString*)data;
 -(void) assignPsyData:(BodyData*)bodydata;
 -(void) move:(NSString*) strData ;
+-(int)indexOfRef:(GameonModelRef*)ref;
+-(bool)acceptTouch:(GameonModel*)model doclick:(bool) click;
 
 @end

@@ -29,7 +29,8 @@ typedef enum
     LATST_SGRID,
     LATST_CARDTABLE,
     LATST_LIST,
-	LATST_HLIST
+	LATST_HLIST,
+	LATST_PLAINLIST
 } LayoutAreaTableSubType;
 
 @interface LayoutAreaTable : LayoutArea {

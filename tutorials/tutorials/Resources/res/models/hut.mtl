@@ -1,0 +1,87 @@
+# Blender MTL File: 'None'
+# Material Count: 7
+newmtl Mat_0_0
+Ns 96.078431
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+t 0.0 0.0 4.0 4.0
+map_Kd hut.png
+#map_Kd BactaFloor150Z.BMP
+
+
+newmtl Mat_0_1
+Ns 96.078431
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+t 0.25 0.0 4.0 4.0
+map_Kd hut.png
+#map_Kd d6_retain.BMP
+
+
+newmtl Mat_0_2
+Ns 96.078431
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+t 0.50 0.0 4.0 4.0
+map_Kd hut.png
+#map_Kd Box1b.BMP
+
+
+newmtl Mat_0_3
+Ns 96.078431
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+t 0.0 0.50 4.0 4.0
+map_Kd hut.png
+#map_Kd Decke2.BMP
+
+
+newmtl Mat_0_4
+Ns 96.078431
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+#map_Kd DeckeLicht4.BMP
+t 0.75 0.0 4.0 4.0
+map_Kd hut.png
+
+
+newmtl Mat_0_5
+Ns 96.078431
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+#map_Kd FFholz1.BMP
+t 0.0 0.25 4.0 4.0
+t 0.25 0.0 4.0 4.0
+map_Kd hut.png
+
+
+
+newmtl Mat_0_6
+Ns 96.078431
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+t 0.25 0.25 4.0 4.0
+t 0.25 0.0 4.0 4.0
+map_Kd hut.png
+

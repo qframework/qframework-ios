@@ -32,6 +32,17 @@
 #import "GameonApp.h"
 #import "GMath.h"
 #import "RenderDomain.h"
+#import "LayoutArea.h"
+#import "AreaIndexPair.h"
+#import "FloatBuffer.h"
+
+@implementation GameonModelRefId
+@synthesize name;
+@synthesize refid;
+@synthesize alias;
+@end
+
+
 
 @implementation GameonModel
 
@@ -40,6 +51,8 @@
 @synthesize mSubmodels;
 @synthesize mModelTemplate;
 @synthesize mName;
+@synthesize mOnClick;
+@synthesize mParentArea;
 
 static float mStaticBoundsPlane[] =  
 { 
@@ -57,10 +70,11 @@ static float mStaticBounds[] =
     0.0f,0.0f,0.0f,1.0f 
 };
 
-- (id) initWithName:(NSString*)name app:(GameonApp*)app
+- (id) initWithName:(NSString*)name app:(GameonApp*)app parenArea:(LayoutArea*)parent
 {
 	if (self = [super initWithApp:app])
 	{
+        mParentArea = parent;
         mRefs = [[NSMutableArray alloc] init] ;
 		mVisibleRefs = [[NSMutableArray alloc] init] ;
         mSubmodels = 0;
@@ -360,23 +374,32 @@ static float mStaticBounds[] =
     GLShape* shape = [[[GLShape alloc] initWithWorld:self] autorelease];
   	float divx = 1; 
     float divy = 1;
-    float divz = 1;
+    
+    float w = right-left;
+    float h = top-bottom;
     
     if (grid != nil)
     {
-        divx = 1 / grid[0];
-        divy = 1 / grid[1];
-        divz = 1 / grid[2];
+        divx = w / grid[0];
+        divy = h / grid[1];
     }
     
-    for (float x = -0.0f; x < 1.0f; x+= divx)
+    for (float x = left; x < right; x+= divx)
     {
-        for (float y = -0.0f; y < 1.0f; y+= divy)
+        for (float y = bottom; y < top; y+= divy)
         {    		
-            float left2 = left * divx + x;
-            float right2 = right * divx + x;
-            float top2 = top * divy + y;
-            float bottom2 = bottom * divy + y;
+            float left2 = x;
+            float right2 = divx + x;
+            if (right2 > right)
+            {
+                right2 = right;
+            }
+            float top2 = divy + y;
+            if (top2 > top)
+            {
+                top2 = top;
+            }				    		
+            float bottom2 = y;
 
             GLVertex* leftBottomFront = [shape addVertex:left2 y:bottom2 z:front tu:0.01f tv:0.99f c:color];
             GLVertex* rightBottomFront = [shape addVertex:right2 y:bottom2 z:front tu:0.99f tv:0.99f c:color];
@@ -911,11 +934,11 @@ static float mStaticBounds[] =
 	if (away)
 	{
 		[mApp.anims createAnim:to end:from def:[mRefs objectAtIndex:no] 
-                                 delay:delay steps:2 owner:nil repeat:1 hide:true];
+                         delay:delay steps:2 owner:nil repeat:1 hide:true save:false];
 	}else
 	{
 		[mApp.anims createAnim:from end:to def:[mRefs objectAtIndex:no] 
-                                 delay:delay steps:2 owner:nil repeat:1 hide:false];
+                         delay:delay steps:2 owner:nil repeat:1 hide:false save:false];
 	}
     [to release];
     [from release];
@@ -1063,6 +1086,63 @@ static float mStaticBounds[] =
 
 }
 
+-(void)createModelFromData2:(const float[][3])inputdata length:(int)len transform:(float*)mat uvbounds:(float*) uvb cols:(int*)cols
+{
+    float umid = uvb[0];//(uvb[2] + uvb[0]) /2;
+    float vmid = uvb[1];//(uvb[3] + uvb[1]) /2;
+    float ratiou = uvb[2] - uvb[0];
+    float ratiov = uvb[3] - uvb[1];
+    
+    float outvec[] = { 0 ,0,0,1};
+    float tu,tv;
+    
+    // model info - vertex offset?
+    //  v   c   uv
+    // (3 + 4 + 2) * 3
+    int off;
+    GLShape* shape = [[[GLShape alloc] initWithWorld:self] autorelease];
+    
+    float temp[4];
+    for (int a=0; a< len; a+= 9 )
+    {
+        // v3 + n3+ t2 = 8
+        temp[0] = inputdata[a][0];
+        temp[1] = inputdata[a][1];
+        temp[2] = inputdata[a][2];
+        
+        matrixVecMultiply2(mat, temp, off , outvec ,0);
+        tu = inputdata[a+2][0] * ratiou + umid;
+        tv  = inputdata[a+2][1] * ratiov + vmid;
+        GLVertex* v1 = [shape addVertexColor:outvec[0] y:outvec[1] z:outvec[2] tu:tu tv:tv c:cols];
+        
+        temp[0] = inputdata[a+3][0];
+        temp[1] = inputdata[a+3][1];
+        temp[2] = inputdata[a+3][2];
+        
+        matrixVecMultiply2(mat, temp, off , outvec ,0);
+        tu = inputdata[a+5][0] * ratiou + umid;
+        tv  = inputdata[a+5][1] * ratiov + vmid;
+        GLVertex* v2 = [shape addVertexColor:outvec[0] y:outvec[1] z:outvec[2] tu:tu tv:tv c:cols];
+        
+        temp[0] = inputdata[a+6][0];
+        temp[1] = inputdata[a+6][1];
+        temp[2] = inputdata[a+6][2];
+        
+        matrixVecMultiply2(mat, temp, off , outvec ,0);
+        tu = inputdata[a+8][0] * ratiou + umid;
+        tv  = inputdata[a+8][1] * ratiov + vmid;
+        GLVertex* v3 = [shape addVertexColor:outvec[0] y:outvec[1] z:outvec[2] tu:tu tv:tv c:cols];
+        
+        GLFace* fc = [[[GLFace alloc] init] autorelease];
+        [fc setVertex:v1 v2:v2 v3:v3];
+        [shape addFace:fc];
+        
+    }
+    
+    [self addShape:shape];
+    mTextureID = 1;
+}
+
 
 -(void)addPlane:(float*)mat colors:(int*) cols colorlen:(int)colslength uvbounds:(float*)uvb 
 {
@@ -1106,7 +1186,7 @@ static float mStaticBounds[] =
 
 -(GameonModel*) copyOfModel
 {
-    GameonModel* model = [[[GameonModel alloc] initWithName:mName app:mApp] autorelease];
+    GameonModel* model = [[GameonModel alloc] initWithName:mName app:mApp parenArea:mParentArea];
     model.mEnabled = mEnabled;
     model.mForceHalfTexturing = false;
     model.mForcedOwner = 0;
@@ -1134,6 +1214,12 @@ static float mStaticBounds[] =
         {
             GameonModelRef* ref = [[[GameonModelRef alloc] initWithParent:self andDomain:loc] autorelease];
             [mRefs addObject:ref];
+            if ([mRefs count] > 1)
+            {
+                [ref copyData:[mRefs objectAtIndex:0]];
+                [ref set];
+            }
+            
         }
         return [mRefs objectAtIndex:count];
     }
@@ -1163,5 +1249,232 @@ static float mStaticBounds[] =
         }
     }
 }
+
+-(void) setupIter:(int) num
+{
+    
+    
+    mIterQueue = [[NSMutableArray alloc]init];
+    while ([mRefs count] < num)
+    {
+        GameonModelRef* ref = [[GameonModelRef alloc]initWithParent:self andDomain:0];
+        [mRefs addObject:ref];
+        if ([mRefs count] > 1)
+        {
+            [ref copyData:[mRefs objectAtIndex:0]];
+            [ref set];
+        }
+    }
+    for (int a=0; a< num; a++)
+    {
+        [mIterQueue  addObject:[NSNumber numberWithInt:a]];
+    }
+    
+}
+
+-(GameonModelRef*) getRefById:(GameonModelRefId*)refid domain:(int) loc
+{
+    if (refid.refid >= 0)
+    {
+        return [self getRef:refid.refid domain:loc];
+    }
+    
+    // go through references and find id with name
+    for (int a=0; a< [mIterQueue count]; a++)
+    {
+        NSNumber* index = [mIterQueue objectAtIndex:a];
+        GameonModelRef* ref = [mRefs objectAtIndex:[index intValue] ];
+        if ([refid.alias isEqualToString:ref.mRefAlias])
+        {
+            // put it on the end
+            [mIterQueue removeObjectAtIndex:a];
+            [mIterQueue addObject:index];
+            refid.refid = [index intValue];
+            return ref;
+        }
+    }
+    
+    // we didn't find alias get first ref
+    NSNumber* index = [mIterQueue objectAtIndex:0];
+    GameonModelRef* ref = [mRefs objectAtIndex:[index intValue]];
+    ref.mRefAlias = refid.alias;
+    // now remove it - and put to back
+    [mIterQueue removeObjectAtIndex:0];
+    [mIterQueue addObject:index];
+    refid.refid = [index intValue];
+    return ref;
+}
+
+-(AreaIndexPair*)onTouch:(float*)eye ray:(float*)ray domain:(int)renderId doclick:(bool)click
+{
+    float loc[3];
+    
+    if (mParentArea != nil)
+    {
+        if (![mParentArea acceptTouch:self doclick:click])
+        {
+            return nil;
+        }
+    }else
+    {
+        if (mOnClick == nil)
+            return nil;
+    }
+    
+    int count = 0;
+    for (GameonModelRef* ref in mRefs)
+    {
+        if (ref.mVisible && ref.mLoc == renderId)
+        {
+            float dist = [ref intersectsRay:eye ray:ray loc:loc];
+            if (dist >=0 && dist < 1e06f)
+            {
+                dist = [ref distToCenter:loc];
+                AreaIndexPair* pair = [[AreaIndexPair alloc] init];
+                pair.mLoc[0] = loc[0];
+                pair.mLoc[1] = loc[1];
+                pair.mLoc[2] = loc[2];
+                pair.mDist = dist;
+                if (mParentArea != nil)
+                {
+                    pair.mArea = mParentArea.mID;
+                    pair.mOnclick = mParentArea.mOnclick;
+                    pair.mOnFocusLost = mParentArea.mOnFocusLost;
+                    pair.mOnFocusGain = mParentArea.mOnFocusGain;
+                    pair.mIndex = [mParentArea indexOfRef:ref];
+                }
+                else
+                {
+                    pair.mArea = mName;
+                    pair.mOnclick = mOnClick;
+                    pair.mAlias = ref.mRefAlias;
+                    pair.mOnFocusLost = nil;
+                    pair.mOnFocusGain =nil;
+                    pair.mIndex = count;
+                    
+                    
+                }
+                
+                return pair;
+                
+            }
+        }
+        count++;
+    }
+    
+    return nil;
+}
+
+-(void)addShapeFromString:(FloatBuffer*)vertices textv:(FloatBuffer*)textvertices data:(NSString*) data
+{
+    GLShape* shape = [[[GLShape alloc] initWithWorld:self] autorelease];
+    
+    NSArray* tok = [data componentsSeparatedByString:@" "];
+    
+    GLVertex* vert[4];
+    
+    int count = 0;
+    GLColor* c =  [mApp colors].white;
+    
+    if (mCurrentMaterial != nil && mCurrentMaterial.diffuse != nil)
+    {
+        c = mCurrentMaterial.diffuse;
+    }else
+    if (mCurrentMaterial != nil && mCurrentMaterial.ambient != nil)
+    {
+        c = mCurrentMaterial.ambient;
+    }
+    else
+    {
+        c = [mApp colors].white;
+    }
+    for (int a=0; a< [tok count]; a++)
+    {
+        NSString* value = [tok objectAtIndex:a];
+        if ([value length] == 0)
+        {
+            continue;
+        }
+        NSRange loc = [value rangeOfString:@"/"];
+        
+        if (loc.location !=  NSNotFound)
+        {
+            NSArray* tok2 = [value componentsSeparatedByString:@"/"];
+            
+            int index = [[tok2 objectAtIndex:0] intValue]-1;
+            int index2 = [[tok2 objectAtIndex:1] intValue]-1;
+            float* vdata = [vertices get:index*3];
+            float* tdata = [textvertices get:index2*2];
+            GLVertex* v = nil;
+            if (mCurrentMaterial.t != nil)
+            {
+                float t0 = 0.0f;
+                float t1 = 0.0f;
+                if (tdata[0] < 0)
+                {
+                    tdata[0] = 0;
+                }
+                if (tdata[0] > 1)
+                {
+                    tdata[0] = 1;
+                }
+                if (tdata[1] < 0)
+                {
+                    tdata[1] = 0;
+                }
+                if (tdata[1] > 1)
+                {
+                    tdata[1] = 1;
+                }
+                t0 = tdata[0] / mCurrentMaterial.t[2];
+                t1 = (1.0f-tdata[1]) / mCurrentMaterial.t[3];
+                
+                t0 += mCurrentMaterial.t[0];
+                t1 += mCurrentMaterial.t[1];
+                v = [shape addVertex:vdata[0] y:vdata[2] z:vdata[1] tu:t0 tv:t1 c:c];
+            }else
+            {
+                v = [shape addVertex:vdata[0] y:vdata[2] z:vdata[1] tu:tdata[0] tv:1.0f-tdata[1] c:c];
+            }
+            
+            vert[count] = v;
+        }else
+        {
+            int index = [value intValue]-1;
+            float* vdata = [vertices get:index*3];
+            GLVertex* v = [shape addVertex:vdata[0] y:vdata[2] z:vdata[1] tu:0 tv:0 c:c];
+            vert[count] = v;
+        }
+        count ++;
+    }
+    if (count == 3)
+    {
+        GLFace* fc = [[[GLFace alloc] init] autorelease];
+        [fc setVertex:vert[0] v2:vert[1] v3:vert[2]];
+        [shape addFace:fc];
+    }else
+    if (count == 4)
+    {
+        GLFace* fc = [[[GLFace alloc] init] autorelease];
+        [fc setVertex:vert[0] v2:vert[1] v3:vert[2]];
+        [shape addFace:fc];
+
+        GLFace* fc2 = [[[GLFace alloc] init] autorelease];
+        [fc2 setVertex:vert[0] v2:vert[2] v3:vert[3]];
+        [shape addFace:fc2];
+        
+    }
+    [self addShape:shape];
+}
+
+-(void)useMaterial:(NSString*) substring
+{
+    mCurrentMaterial = [[mApp textures] getMaterial:substring];
+    if (mTextureID == 1)
+    {
+        mTextureID = mCurrentMaterial.diffuseMapId;
+    }
+}
+
 
 @end

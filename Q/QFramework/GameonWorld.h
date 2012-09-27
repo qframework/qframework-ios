@@ -23,6 +23,7 @@
 @class GameonModel;
 @class GameonApp;
 @class RenderDomain;
+@class AreaIndexPair;
 
 @interface GameonWorld : NSObject {
 
@@ -47,7 +48,7 @@
 -(void) remove:(GameonModel*) model;
 
 -(void) addModels;
--(void) draw;
+-(void) draw:(double)delay;
 -(void) prepare;
 
 -(void) test;
@@ -69,6 +70,10 @@
 -(void)onSurfaceChanged:(int)width h:(int) height;
 -(void)onSurfaceCreated;
 -(RenderDomain*) addDomain:(NSString*)name domain:(int)i visible:(bool) visible;
-
+-(AreaIndexPair*)onTouchModel:(float)x y:(float)y dotouch:(bool)click;
+-(void) resetDomainPan;
+-(bool) panDomain:(float)x y:(float) y;
+-(void)domainPan:(NSString*)name mode:(NSString*)mode scrolls:(NSString*) scrollers
+          bounds:(NSString*) coords;
 @end
 

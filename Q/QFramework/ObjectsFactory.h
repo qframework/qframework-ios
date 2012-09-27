@@ -25,7 +25,7 @@
 @class  LayoutItem;
 @class  GLColor;
 @class  GameonApp;
-@class ObjectsFactoryRefId;
+@class GameonModelRefId;
 @class GameonModelRef;
 
 @interface ObjectsFactory : NSObject {
@@ -38,7 +38,7 @@
 - (id)initWithApp:(GameonApp*) app;
 - (LayoutItem*)get:(NSString*) name;
 - (void)create:(NSString*)name data:(NSString*) data color:(NSString*)color;
-- (void)place:(NSString*)name data:(NSString*) data;
+- (void)place:(NSString*)name data:(NSString*) data state:(NSString*)state;
 - (void)scale:(NSString*)name data:(NSString*) data;
 - (void)texture:(NSString*)name data:(NSString*)data submodel:(NSString*)submodel;
 - (void)state:(NSString*)name data:(NSString*) data;
@@ -46,17 +46,8 @@
 - (void)initObjects:(NSDictionary*)response;
 - (void)processObject:(NSDictionary*)objData;
 -(void)rotate:(NSString*)name data:(NSString*)data ;
--(ObjectsFactoryRefId*)refId:(NSString*) name;
+-(GameonModelRefId*)refId:(NSString*) name;
 -(GameonModelRef*) getRef:(NSString*) name;
 
 @end
 
-@interface ObjectsFactoryRefId : NSObject {
-    NSString* name;
-    int refid;
-}
-
-@property (nonatomic, assign) NSString* name;
-@property (nonatomic, assign) int refid;
-
-@end

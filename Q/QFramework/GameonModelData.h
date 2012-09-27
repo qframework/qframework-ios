@@ -24,6 +24,8 @@ typedef const float modeldata[][3];
 
 modeldata* GameonModelData_getData(GameonModelData_Type type);
 int GameonModelData_getDataLen(GameonModelData_Type type);
+extern const float modelCyl[][3];
+extern const float modelCube[][3];
 
 @interface GameonModelData : NSObject {
 

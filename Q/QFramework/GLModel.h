@@ -77,6 +77,8 @@
 -(void) setTextureOffset:(int)aw h:(int)ah ;
 -(void) forceIndexCount:(int)count;
 -(void)freeArrays;
+-(void)invert:(bool)x y:(bool)y z:(bool)z;
+-(void) normalize;
 
 @end
 

@@ -47,6 +47,23 @@ function Camera(qapp)
     }
     
 
+
+    this.move = function (delay, x1, y1,z1 , x2,y2,z2, domain)
+    {
+    	
+    	if (domain == undefined)
+    	{
+    		this.qapp.appendEvent( 2504 , x1+","+y1+","+z1 , x2+","+y2+","+z2, "world" , delay);
+    	}else
+    	{
+    		this.qapp.appendEvent( 2504 , x1+","+y1+","+z1 , x2+","+y2+","+z2, domain , delay);
+    	}
+    	
+        return this.qapp.serverko;
+    	
+    }
+    
+    
     this.proj = function (fov, near, far, domain)
     {
     	if (domain == undefined)
@@ -110,6 +127,11 @@ function Connect(qapp)
         return this.qapp.serverko;
     }
 
+    this.get = function (data, callback)
+    {
+        this.qapp.appendEvent( 7005 , data, callback );
+        return this.qapp.serverko;
+    }
 
 }
 
@@ -295,9 +317,12 @@ function WorldObject()
 	this.template = undefined;
 	this.location = undefined;
 	this.bounds = undefined;
+	this.rotate = undefined;
 	this.texture = undefined;
 	this.color = undefined;
 	this.state = undefined;
+	this.iter = undefined;	
+	this.onclick = undefined;
 }
 
 function Objects(qapp)
@@ -408,6 +433,19 @@ function Objects(qapp)
             	this.qapp.serverko.appendTag( "state", objs[a].state);
             }            
             
+            if (objs[a].iter != undefined)
+            {
+            	this.qapp.serverko.addSeparator();           
+            	this.qapp.serverko.appendTag( "iter", objs[a].iter);
+            }
+            
+            if (objs[a].onclick != undefined)
+            {
+            	this.qapp.serverko.addSeparator();           
+            	this.qapp.serverko.appendTag( "onclick", objs[a].onclick);
+            }               
+            
+            
             this.qapp.serverko.endTag( "object");    /// TODO without param        
         }    
         this.qapp.serverko.endTags( "object");    /// TODO without param
@@ -437,7 +475,7 @@ function Box2dModel()
 }
 
 
-function Box2D(qapp)
+function Box2DClass(qapp)
 {
 	this.qapp = qapp;
 	this.create = function ( name , gravity, mapping)
@@ -571,6 +609,12 @@ function RenderDomains(qapp)
 		return this.qapp.serverko;
 	}		
 
+	this.panning = function (name , mode, scrollers, xmin,xmax, ymin,ymax)
+	{
+		this.qapp.serverko.appendEvent( 8004 , name , mode, scrollers, xmin+","+xmax+","+ymin+","+ymax);
+		return this.qapp.serverko;
+	}
+	
 	// to camera bound
 	// clear color, or background
 	// ambient light for domain (adding with world)
@@ -774,7 +818,7 @@ function QApp()
     this.animations = new Animations(this);
     this.scores = new Scores(this);
     this.domains = new RenderDomains(this);
-    this.box2d = new Box2D(this);
+    this.box2d = new Box2DClass(this);
     
     this.startUpdate = function()
     {
@@ -861,6 +905,15 @@ var anim = new AnimType();
 anim.id = "rotate";
 anim.frames.push(frame);
 Q.animations.add(anim).now();
+
+var frame = new AnimFrame();
+frame.rotate = "0,0,360";
+frame.operation = "add";
+var anim = new AnimType();
+anim.id = "rotateadd";
+anim.frames.push(frame);
+Q.animations.add(anim).now();
+
 
 var frame1 = new AnimFrame();
 frame1.scale = "0.001,0.001,0.001";

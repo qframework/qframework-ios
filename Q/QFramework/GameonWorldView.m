@@ -45,14 +45,14 @@
 {
     [super dealloc];  
 }
--(void) onDrawFrame
+-(void) onDrawFrame:(double)delay
 {
     //if (mContext.mLayoutInit == false)
     //    return;
 	if (mLockedDraw)return;
     glClear(GL_COLOR_BUFFER_BIT);  
     // render 3d world
-    [mWorld draw];
+    [mWorld draw:delay];
 }
 
 -(void) perspective:(float)fovy aspect:(float)aspect zmin:(float)zmin zmax:(float) zmax

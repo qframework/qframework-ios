@@ -79,5 +79,6 @@
 +(float*)parseFloatVector:(NSString*)data datalen:(int*)datalen;
 +(int*) parseColorVector:(NSString*)data datalen:(int*)datalen;
 -(void) get:(NSString*)url callback:(NSString*) callback;
++(int) parseFloatArray2:(float*)array max:(int)max forData:(NSString*)data sep:(NSString*)sep;
 
 @end

@@ -23,6 +23,7 @@
 @interface AreaIndexPair : NSObject {
 
 	NSString*     mArea;
+	NSString*     mAlias;
 	int                 mIndex;
 	NSString*     mOnclick;
 	NSString*     mOnFocusLost;
@@ -34,6 +35,7 @@
 
 
 @property (nonatomic, assign) NSString*     mArea;
+@property (nonatomic, assign) NSString*     mAlias;
 @property (nonatomic, assign) NSString*     mOnclick;
 @property (nonatomic, assign) NSString*     mOnFocusLost;
 @property (nonatomic, assign) NSString*     mOnFocusGain;

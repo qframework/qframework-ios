@@ -332,7 +332,7 @@
 {
    if (mItem != nil && mItem.mModelRef != nil)
    {
-       [mItem.mModelRef setScale:mW y:mH z:1];
+       [mItem.mModelRef setScale:mW y:mH z:mW];
    }
    if (mText != nil)
    {
@@ -340,7 +340,7 @@
    }
    if (mRef != nil)
    {
-       [mRef setScale:mW y:mH z:1];
+       [mRef setScale:mW y:mH z:mW];
    }
 }
                            

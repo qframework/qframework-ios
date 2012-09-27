@@ -240,10 +240,10 @@ static double currentTime()
         location = [touch locationInView:self];
         if ([self respondsToSelector:@selector(setContentScaleFactor:)])
         {
-            [mGameonApp touchEnd:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor delay:delta];
+            [mGameonApp touchEnd:location.x*self.contentScaleFactor y:location.y*self.contentScaleFactor delay:delta dotouch:true];
             
         }else {
-            [mGameonApp touchEnd:location.x y:location.y  delay:delta];
+            [mGameonApp touchEnd:location.x y:location.y  delay:delta dotouch:true];
         }
         
         

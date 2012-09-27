@@ -282,4 +282,54 @@
     mIndexCount = count;
 }
 
+-(void) normalize
+{
+    // get scale
+    // get center
+    
+    float xc = (mBBoxMax[0] + mBBoxMin[0])/2;
+    float yc = (mBBoxMax[1] + mBBoxMin[1])/2;
+    float zc = (mBBoxMax[2] + mBBoxMin[2])/2;
+    
+    float xw = mBBoxMax[0] - mBBoxMin[0];
+    float yw = mBBoxMax[1] - mBBoxMin[1];
+    float zw = mBBoxMax[2] - mBBoxMin[2];
+    
+    for (GLVertex* v in mVertexList)
+    {
+        v.x -= xc;
+        v.y -= yc;
+        v.z -= zc;
+        
+        if (xw != 0)
+            v.x /= xw;
+        if (yw != 0)
+            v.y /= yw;
+        if (zw != 0)
+            v.z /= zw;
+    }
+}
+
+-(void)invert:(bool)x y:(bool)y z:(bool)z
+{
+    // get scale
+    // get center
+    
+    for (GLVertex* v in mVertexList)
+    {
+        if (x)
+        {
+            v.x *= -1;
+        }
+        if (y)
+        {
+            v.y *= -1; 
+        }
+        if (z)
+        {
+            v.z *= -1; 
+        }			
+    }
+}
+
 @end
