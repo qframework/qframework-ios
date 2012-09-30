@@ -955,15 +955,6 @@ anim.frames.push(frame);
 Q.animations.add(anim).now();
 
 
-var frame1 = new AnimFrame();
-frame1.scale = "1.0,1.0,1.0";
-var frame2 = new AnimFrame();
-frame2.scale = "1000.0,1000.0,1000.0";
-frame2.scale = "0.0,100.0,0.0";
-var anim = new AnimType();
-anim.frames.push(frame1);
-anim.frames.push(frame2);
-Q.animations.add(anim).now();
 
 
 var anim = new AnimType();

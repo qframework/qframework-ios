@@ -888,7 +888,7 @@ static float mStaticBounds[] =
     GameonModelRef* from = [[GameonModelRef alloc] init];
 	float w,h,x,y;
 	
-    [to copy:[mRefs objectAtIndex:no]];
+    //[to copy:[mRefs objectAtIndex:no]];
     [from copy:to];
     
     RenderDomain* domain = [[mApp world] getDomain:to.mLoc];
@@ -934,11 +934,11 @@ static float mStaticBounds[] =
 	if (away)
 	{
 		[mApp.anims createAnim:to end:from def:[mRefs objectAtIndex:no] 
-                         delay:delay steps:2 owner:nil repeat:1 hide:true save:false];
+                         delay:delay steps:2 owner:nil repeat:1 hide:true save:true];
 	}else
 	{
 		[mApp.anims createAnim:from end:to def:[mRefs objectAtIndex:no] 
-                         delay:delay steps:2 owner:nil repeat:1 hide:false save:false];
+                         delay:delay steps:2 owner:nil repeat:1 hide:false save:true];
 	}
     [to release];
     [from release];

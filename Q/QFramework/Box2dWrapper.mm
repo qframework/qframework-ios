@@ -464,7 +464,7 @@
 
 -(bool) isActive
 {
-    return true;
+    return mActive;
 }
 
 -(void)removeWorld:(NSString*)name

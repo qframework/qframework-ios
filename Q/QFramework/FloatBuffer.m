@@ -27,7 +27,7 @@
 	if (self = [super init])
 	{
         size = 16;
-        step = 1024;
+        step = 128;
         count = 0;
         
         buffer = malloc(size * sizeof(GLfloat));
@@ -79,7 +79,7 @@
 
 - (int) capacity
 {
-    return size;
+    return count;//size;
 }
 
 -(void) print
