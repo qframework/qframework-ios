@@ -780,11 +780,11 @@ static float mStaticBounds[] =
 		c = color;
 	}
 	
-	[self createPlane:left-fw/2 btm:bottom-fh/2 b:front   r:left+fw/2 t:top+fh/2 f:front c:color grid:nil];
-	[self createPlane:right-fw/2 btm:bottom-fh/2 b:front  r:right+fw/2 t:top+fh/2 f:front c:color grid:nil];
+	[self createPlane2:left-fw/2 btm:bottom-fh/2 b:front   r:left+fw/2 t:top+fh/2 f:front c:color ];
+	[self createPlane2:right-fw/2 btm:bottom-fh/2 b:front  r:right+fw/2 t:top+fh/2 f:front c:color];
 	
-	[self createPlane:left+fw/2 btm:bottom-fh/2 b:front r:right-fw/2 t:bottom+fh/2 f:front c:color grid:nil];
-	[self createPlane:left+fw/2 btm:top-fh/2 b:front r:right-fw/2 t:top+fh/2 f:front c:color grid:nil];
+	[self createPlane2:left+fw/2 btm:bottom-fh/2 b:front r:right-fw/2 t:bottom+fh/2 f:front c:color];
+	[self createPlane2:left+fw/2 btm:top-fh/2 b:front r:right-fw/2 t:top+fh/2 f:front c:color];
 	
 }
 
