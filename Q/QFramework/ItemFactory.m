@@ -534,7 +534,7 @@
     
     model = [[GameonModel alloc] initWithName:modelname app:mApp parenArea:nil];
     
-    NSMutableString* location = [[[NSMutableString alloc] initWithString:fname ] autorelease];
+    //NSMutableString* location = [[[NSMutableString alloc] initWithString:fname ] autorelease];
 
     FloatBuffer* vertices = [[FloatBuffer alloc] init];
     FloatBuffer* textvertices = [[FloatBuffer alloc] init];
@@ -617,7 +617,7 @@
 -(void)parseVertices:(FloatBuffer*)vertices data:(NSString*)data
 {
     float array[4];
-    [ServerkoParse parseFloatArray2:array max:4 forData:data sep:@" "];
+    [ServerkoParse parseFloatArray2:array max:4 forData:[data stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]  sep:@" "];
     [vertices put:array[0]];
     [vertices put:array[1]];
     [vertices put:array[2]];
@@ -627,7 +627,7 @@
 -(void)parseTextureVertices:(FloatBuffer*)vertices data:(NSString*)data
 {
     float array[2];
-    [ServerkoParse parseFloatArray2:array max:2 forData:data sep:@" "];
+    [ServerkoParse parseFloatArray2:array max:2 forData:[data stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] sep:@" "];
     [vertices put:array[0]];
     [vertices put:array[1]];
 }

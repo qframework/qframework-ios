@@ -144,4 +144,14 @@ function startRotate()
 	Q.sendUpdate();
 }
 
+// cmarea area change registraion location events.... eye pt change callback
+
+// collision cb reg
+
+
+
+
+
+
+
 
